@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "autoresearch-filters"
+version = "0.1.0"
+description = "Auditable, training-free screening rules with a sealed evaluation protocol"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+  "numpy>=2.0,<3", "pandas>=2.2,<4", "scikit-learn>=1.5,<2",
+  "pydantic>=2.10,<3", "typer>=0.15,<1",
+]
+
+[project.scripts]
+filters = "autoresearch_filters.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "ruff>=0.11,<1", "pre-commit>=4,<5"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
