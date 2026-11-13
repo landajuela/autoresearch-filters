@@ -1,0 +1,17 @@
+{
+  "name": "abb2-plus-weak-esmfold",
+  "hypothesis": "Test a weak alternate-model consistency term as a flat comparator. Pooled ESMFold AUC is adverse, so improvement is uncertain and guard failures must reject it.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "HCDR3 scRMSD (ABB2)",
+        "weight": 1
+      },
+      {
+        "signal": "HCDR3 scRMSD (ESMFold)",
+        "weight": 0.25
+      }
+    ]
+  }
+}
