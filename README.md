@@ -1,5 +1,37 @@
 # autoresearch-filters
 
+## The loop in plain terms
+
+You open a coding agent (Codex, Claude, ...) in this repository and ask it to
+run an experiment. It follows [AGENTS.md](AGENTS.md) and does this:
+
+1. **Set up the data (once).** `filters prepare` cuts the data into three piles:
+   *discovery* (the agent may look at it freely), *verification* (reserved, used
+   once) and the *final holdout* (locked, used once at the very end).
+2. **Measure the starting point.** Score `rules/baseline.json` on the discovery
+   pile. This is the number to beat.
+3. **Write down an idea.** Create a new JSON file in `rules/` with one small
+   change and a sentence saying why it should help. It is a formula, not a
+   trained model.
+4. **Test the idea.** `filters eval` scores the new rule and writes a results file.
+5. **Save it in git.** One commit for the rule, one for the results and a line
+   in the audit log. Failed ideas are recorded as `rejected`, never deleted.
+6. **Repeat steps 3–5** a few times, using what was learned to pick the next idea.
+7. **Pick the finalists.** List 1–3 ideas in `experiments/plan.json` and register
+   them. From then on they cannot be edited.
+8. **The one-shot check.** `filters transfer-check` picks the best finalist and
+   tests it once on the verification pile. If it does not truly beat the
+   baseline, the baseline is kept.
+9. **The final exam.** `filters final` scores the winner once on the locked
+   holdout. That number is the honest result, and the campaign is over.
+
+Everything stays local: the agent commits on your current branch and never
+pushes or creates a remote unless you ask. The shipped IgDesign example has
+already used its one-shot check and final exam, so rerunning it is a replay;
+new research needs [a dataset](docs/adding-datasets.md) nobody has selected on yet.
+
+## What this is
+
 A small, CPU-only research harness for discovering **interpretable,
 training-free screening rules**. A coding agent proposes a small change to a
 JSON formula, runs a fixed evaluation, reads the recorded metrics, commits the
