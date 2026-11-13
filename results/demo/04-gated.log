@@ -1,0 +1,26 @@
+/private/tmp/autoresearch-filters/src/autoresearch_filters/dev.py:166: UserWarning: SIGN WARNING: 'HCDR3 scRMSD (ABB3)' has oriented AUC 0.3421 < 0.5; check negative-valued errors and declared direction. Do not auto-flip it.
+  record["sign_diagnostics"] = sign_diagnostics(bundle)
+/private/tmp/autoresearch-filters/src/autoresearch_filters/dev.py:166: UserWarning: SIGN WARNING: 'HCDR3 scRMSD (ESMFold)' has oriented AUC 0.3958 < 0.5; check negative-valued errors and declared direction. Do not auto-flip it.
+  record["sign_diagnostics"] = sign_diagnostics(bundle)
+dev: abb2-with-regime-esmfold
+score = ((1 * n("HCDR3 scRMSD (ABB2)", 0..10, lower_is_better)) / 1) + 1["HCDR3 scRMSD (ABB2)" > 2.5] * (0.25 * (n("HCDR3 scRMSD (ESMFold)", 0..10, lower_is_better) - 0.5))
+  n: 60.166667 ± 0.000000 (5/5 valid)
+  prevalence: 0.324730 ± 0.000000 (5/5 valid)
+  roc_auc: 0.629986 ± 0.000000 (5/5 valid)
+  pr_auc: 0.419848 ± 0.000000 (5/5 valid)
+  partial_auc: 0.543521 ± 0.000000 (5/5 valid)
+  balanced_roc_auc: 0.613784 ± 0.052156 (5/5 valid)
+  success@5: 2.000000 ± 0.000000 (5/5 valid)
+  precision@5: 0.400000 ± 0.000000 (5/5 valid)
+  recall@5: 0.103260 ± 0.000000 (5/5 valid)
+  effective_k@5: 5.000000 ± 0.000000 (5/5 valid)
+  success@10: 3.500000 ± 0.000000 (5/5 valid)
+  precision@10: 0.350000 ± 0.000000 (5/5 valid)
+  recall@10: 0.319772 ± 0.000000 (5/5 valid)
+  effective_k@10: 10.000000 ± 0.000000 (5/5 valid)
+  success@20: 6.833333 ± 0.000000 (5/5 valid)
+  precision@20: 0.341667 ± 0.000000 (5/5 valid)
+  recall@20: 0.501299 ± 0.000000 (5/5 valid)
+  effective_k@20: 20.000000 ± 0.000000 (5/5 valid)
+CV standard deviation is repeat variability, not a confidence interval.
+LOGO repeats reuse identical natural-balance folds; they are not independent evidence.
