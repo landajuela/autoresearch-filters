@@ -22,25 +22,28 @@ short laptop workload; first installation/download time depends on your network.
 ```sh
 uv sync --frozen --dev
 mkdir -p results/local
-uv run filters prepare --config configs/igdesign.json --work work/igdesign
+uv run filters prepare --config configs/igdesign.json --work work/quickstart
 
-uv run filters eval --work work/igdesign --rule rules/baseline.json \
+uv run filters eval --work work/quickstart --rule rules/baseline.json \
   --output results/local/00-baseline.json > results/local/00-baseline.log
 
 # Register the exact two hypotheses before testing their outcomes.
-uv run filters transfer-check --work work/igdesign --plan experiments/plan.json
-uv run filters eval --work work/igdesign --rule rules/additive.json \
+uv run filters transfer-check --work work/quickstart --plan experiments/plan.json
+uv run filters eval --work work/quickstart --rule rules/additive.json \
   --output results/local/01-additive.json > results/local/01-additive.log
-uv run filters eval --work work/igdesign --rule rules/gated.json \
+uv run filters eval --work work/quickstart --rule rules/gated.json \
   --output results/local/02-gated.json > results/local/02-gated.log
-uv run filters transfer-check --work work/igdesign \
+uv run filters transfer-check --work work/quickstart \
   --output results/local/03-transfer.json > results/local/03-transfer.log
 
 # The selected rule is now frozen. This endpoint can be called only once.
-uv run filters final --work work/igdesign \
+uv run filters final --work work/quickstart \
   --output results/local/04-final.json > results/local/04-final.log
 uv run filters report --record results/local/04-final.json
 ```
+
+The quickstart uses `work/quickstart`, separate from the completed local demo in
+`work/igdesign`. The synthetic smoke test similarly uses its own fresh directory.
 
 This replays a **pre-specified demonstration**, not a fresh independent benchmark
 study: the shipped candidates and public example results are already visible.
@@ -60,8 +63,8 @@ Upstream data are downloaded with pinned SHA-256 checksums, never vendored.
 For a network-free dataset after package installation:
 
 ```sh
-uv run filters prepare --config configs/synthetic.json --work work/synthetic
-uv run filters eval --work work/synthetic --rule rules/synthetic.json \
+uv run filters prepare --config configs/synthetic.json --work work/synthetic-quickstart
+uv run filters eval --work work/synthetic-quickstart --rule rules/synthetic.json \
   --output results/local/synthetic.json
 uv run pytest
 ```
