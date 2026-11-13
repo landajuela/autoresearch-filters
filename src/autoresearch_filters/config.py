@@ -62,7 +62,13 @@ class FeatureSpace(StrictModel):
 
     @model_validator(mode="after")
     def check(self) -> Self:
-        forbidden = set(self.exclude_columns) | {self.label_column, self.id_column}
+        forbidden = set(self.exclude_columns) | {
+            self.label_column,
+            self.id_column,
+            "_id",
+            "_label",
+            "_group",
+        }
         if self.group_column:
             forbidden.add(self.group_column)
         overlap = forbidden & self.signals.keys()
@@ -117,6 +123,7 @@ class Protocol(StrictModel):
     top_k: list[int] = Field(default=[5, 10, 20], min_length=1)
     max_fpr: float = Field(default=0.1, gt=0, le=1)
     target_prevalence: float | None = Field(default=None, gt=0, lt=1)
+    match_holdout_prevalence: bool = False
     sign_policy: Literal["warn", "error"] = "warn"
     sign_tolerance: float = Field(default=0.02, ge=0, lt=0.5)
     primary_metric: Literal["roc_auc", "pr_auc", "partial_auc"] = "roc_auc"
@@ -126,6 +133,8 @@ class Protocol(StrictModel):
 
     @model_validator(mode="after")
     def check(self) -> Self:
+        if self.match_holdout_prevalence and self.target_prevalence is not None:
+            raise ValueError("choose declared target_prevalence OR match_holdout_prevalence")
         if any(k < 1 for k in self.top_k) or len(set(self.top_k)) != len(self.top_k):
             raise ValueError("top_k must contain distinct positive integers")
         return self

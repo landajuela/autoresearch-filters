@@ -1,0 +1,6 @@
+cff-version: 1.2.0
+message: "Placeholder: fill in the actual authors, release version, repository URL, and DOI (if any) before citing a release."
+title: "autoresearch-filters"
+type: software
+license: MIT
+# No paper, DOI, authorship list, repository URL, or benchmark claim is invented here.

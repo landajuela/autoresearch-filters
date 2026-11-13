@@ -1,0 +1,12 @@
+{
+  "name": "synthetic-baseline",
+  "hypothesis": "Higher confidence should rank every synthetic positive above negatives.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "confidence"
+      }
+    ]
+  }
+}

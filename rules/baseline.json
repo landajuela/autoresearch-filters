@@ -1,0 +1,13 @@
+{
+  "name": "abb2-hcdr3",
+  "hypothesis": "Lower HCDR3 structural inconsistency may enrich binders; test the public ABB2 score without fitting.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "HCDR3 scRMSD (ABB2)",
+        "weight": 1
+      }
+    ]
+  }
+}

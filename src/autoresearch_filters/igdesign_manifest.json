@@ -1,0 +1,41 @@
+{
+  "revision": "70431eef0afaf0496d7d84e22dfdc1980ec9e70e",
+  "retrieved": "2026-11-13",
+  "files": [
+    {
+      "name": "Afasevikumab-IL17A.csv",
+      "url": "https://raw.githubusercontent.com/AbSciBio/igdesign/70431eef0afaf0496d7d84e22dfdc1980ec9e70e/data/Afasevikumab-IL17A.csv",
+      "sha256": "71aeb8448410ddadd9ca65c126b7663399a5357eb51ffc80918c01071d24dd44"
+    },
+    {
+      "name": "Bimagrumab-ACVR2B.csv",
+      "url": "https://raw.githubusercontent.com/AbSciBio/igdesign/70431eef0afaf0496d7d84e22dfdc1980ec9e70e/data/Bimagrumab-ACVR2B.csv",
+      "sha256": "5775fdfa2b23802aa4a295e7b98d3bbd52f4bd83440e33a3c9a0fca723dfcae9"
+    },
+    {
+      "name": "Eculizumab-C5.csv",
+      "url": "https://raw.githubusercontent.com/AbSciBio/igdesign/70431eef0afaf0496d7d84e22dfdc1980ec9e70e/data/Eculizumab-C5.csv",
+      "sha256": "787d440681730f7b50cd4885324bc2ea3e0b14bddafbf67b4354d8e535b065ad"
+    },
+    {
+      "name": "Osocimab-FXI.csv",
+      "url": "https://raw.githubusercontent.com/AbSciBio/igdesign/70431eef0afaf0496d7d84e22dfdc1980ec9e70e/data/Osocimab-FXI.csv",
+      "sha256": "850552125e42524d2ff33e2ff003e4f9b4b413124db9eb69dc0623a24e50fd28"
+    },
+    {
+      "name": "Spesolimab-IL36R.csv",
+      "url": "https://raw.githubusercontent.com/AbSciBio/igdesign/70431eef0afaf0496d7d84e22dfdc1980ec9e70e/data/Spesolimab-IL36R.csv",
+      "sha256": "5ee0782ad74cd0a5b955403ee5ee9fd374df6503be964f25a559a9c6670244ca"
+    },
+    {
+      "name": "Tezepelumab-TSLP.csv",
+      "url": "https://raw.githubusercontent.com/AbSciBio/igdesign/70431eef0afaf0496d7d84e22dfdc1980ec9e70e/data/Tezepelumab-TSLP.csv",
+      "sha256": "2cc6eaac6b6c97211549cb91d34b51056c448e0f4680b740e3b2a724fddc1ef0"
+    },
+    {
+      "name": "Utomilumab-TNFRSF9.csv",
+      "url": "https://raw.githubusercontent.com/AbSciBio/igdesign/70431eef0afaf0496d7d84e22dfdc1980ec9e70e/data/Utomilumab-TNFRSF9.csv",
+      "sha256": "5b805d1ee43902b4f0a8520085fb1c2921776f4d8620b70ff046789b4525619c"
+    }
+  ]
+}

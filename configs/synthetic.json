@@ -1,0 +1,58 @@
+{
+  "name": "synthetic",
+  "source": {
+    "kind": "file",
+    "path": "../data/synthetic.csv"
+  },
+  "id_column": "id",
+  "label_column": "success",
+  "success_value": 1,
+  "group_column": "group",
+  "signals": {
+    "confidence": {
+      "direction": "higher_is_better",
+      "range": [
+        0,
+        1
+      ]
+    },
+    "negative_error": {
+      "direction": "higher_is_better",
+      "range": [
+        -10,
+        0
+      ],
+      "description": "Negated error: values closer to zero are better, despite the word error."
+    },
+    "stabilizer": {
+      "direction": "higher_is_better",
+      "range": [
+        0,
+        1
+      ],
+      "expected_positive_auc": false
+    }
+  },
+  "exclude_columns": [
+    "measured_response"
+  ],
+  "split": {
+    "holdout": "group",
+    "holdout_groups": [
+      "g7"
+    ],
+    "dev": "random",
+    "folds": 3,
+    "repeats": 5,
+    "seed": 17
+  },
+  "protocol": {
+    "top_k": [
+      1,
+      5,
+      10
+    ],
+    "max_fpr": 0.1,
+    "sign_policy": "error"
+  }
+}
