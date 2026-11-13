@@ -1,0 +1,211 @@
+{
+  "cache_key": "ea82f57b0257f0c5f2a8359c429c1e9ec9024d00e9aae3298533cc38aa73fa5d",
+  "config_hash": "ff19e1a2fe44de4233926b85e0fee3ac244fc9a4ad306a2661692d125ba2760d",
+  "dataset": "igdesign",
+  "dataset_hash": "0eb645fd09cff769c3c604676e80f60cbd3fede8954e75d7858f103fe123094a",
+  "environment": {
+    "autoresearch-filters": "0.1.0",
+    "numpy": "2.4.6",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "scikit-learn": "1.9.1"
+  },
+  "final_seed": 10729,
+  "formula": "score = (1 * n(\"HCDR3 scRMSD (ABB2)\", 0..10, lower_is_better)) / 1",
+  "git": {
+    "commit": "0b9ef49f4e44e2aaa8579bf25dda45c099d204f7",
+    "dirty": true
+  },
+  "holdout_hash": "96a5d4e1282e1e55234b1a024dbc3a0c45f4303346656a0f95439ca5fd897dc6",
+  "implementation_hash": "192d5444c77c83fbbd2f1fb0924e7b1b0d739040eaddade3d1e6ca169eb80707",
+  "metrics": {
+    "balanced_roc_auc": 0.7053571428571428,
+    "effective_k@10": 10.0,
+    "effective_k@20": 20.0,
+    "effective_k@5": 5.0,
+    "n": 125.0,
+    "partial_auc": 0.5632121540965817,
+    "pr_auc": 0.41503377335801933,
+    "precision@10": 0.6,
+    "precision@20": 0.5,
+    "precision@5": 0.6,
+    "prevalence": 0.224,
+    "recall@10": 0.21428571428571427,
+    "recall@20": 0.35714285714285715,
+    "recall@5": 0.10714285714285714,
+    "roc_auc": 0.6796759941089838,
+    "success@10": 6.0,
+    "success@20": 10.0,
+    "success@5": 3.0
+  },
+  "mode": "final",
+  "notes": [
+    "CV standard deviation is repeat variability, not a confidence interval.",
+    "LOGO repeats reuse identical natural-balance folds; they are not independent evidence.",
+    "Final holdout evaluated once. No selection may follow this result."
+  ],
+  "partition_hash": "d74e6eaaef858ff64ce7b39843e04016da010b4f550fdff39810c61503fda49f",
+  "preprocessing": "1",
+  "record_version": 1,
+  "rule": {
+    "expression": {
+      "kind": "additive",
+      "terms": [
+        {
+          "clip": null,
+          "direction": null,
+          "signal": "HCDR3 scRMSD (ABB2)",
+          "weight": 1.0
+        }
+      ]
+    },
+    "hypothesis": "Lower HCDR3 structural inconsistency may enrich binders; test the public ABB2 score without fitting.",
+    "name": "abb2-hcdr3"
+  },
+  "rule_hash": "e182e1d3e4bd340984a32d08bb0ae5444003352d661b59bb1b444c1c7aaa813b",
+  "seeds": [
+    1729,
+    1730,
+    1829,
+    1830,
+    1831,
+    1832,
+    1833
+  ],
+  "selection_decision": {
+    "accepted": false,
+    "chosen_rule": {
+      "expression": {
+        "kind": "additive",
+        "terms": [
+          {
+            "clip": null,
+            "direction": null,
+            "signal": "HCDR3 scRMSD (ABB2)",
+            "weight": 1.0
+          }
+        ]
+      },
+      "hypothesis": "Lower HCDR3 structural inconsistency may enrich binders; test the public ABB2 score without fitting.",
+      "name": "abb2-hcdr3"
+    },
+    "chosen_rule_hash": "e182e1d3e4bd340984a32d08bb0ae5444003352d661b59bb1b444c1c7aaa813b",
+    "dev_gain": 0.0,
+    "guard_failures": [],
+    "optimism_gap": 0.0,
+    "reason": "Candidate failed discovery or transfer criteria; retain baseline and stop.",
+    "stop_search": true,
+    "transfer_gain": 0.0
+  },
+  "summary": {
+    "balanced_roc_auc": {
+      "mean": 0.7053571428571428,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "effective_k@10": {
+      "mean": 10.0,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "effective_k@20": {
+      "mean": 20.0,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "effective_k@5": {
+      "mean": 5.0,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "n": {
+      "mean": 125.0,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "partial_auc": {
+      "mean": 0.5632121540965817,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "pr_auc": {
+      "mean": 0.41503377335801933,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "precision@10": {
+      "mean": 0.6,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "precision@20": {
+      "mean": 0.5,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "precision@5": {
+      "mean": 0.6,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "prevalence": {
+      "mean": 0.224,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "recall@10": {
+      "mean": 0.21428571428571427,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "recall@20": {
+      "mean": 0.35714285714285715,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "recall@5": {
+      "mean": 0.10714285714285714,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "roc_auc": {
+      "mean": 0.6796759941089838,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "success@10": {
+      "mean": 6.0,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "success@20": {
+      "mean": 10.0,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    },
+    "success@5": {
+      "mean": 3.0,
+      "std": 0.0,
+      "total": 1,
+      "valid": 1
+    }
+  },
+  "timestamp": "2026-11-13T19:32:52.850815+00:00"
+}
