@@ -1,0 +1,62 @@
+gate-scan: abb2-hcdr3
+score = (1 * n("HCDR3 scRMSD (ABB2)", 0..10, lower_is_better)) / 1
+[
+  {
+    "threshold": 2.0,
+    "n": 186,
+    "positives": 60,
+    "overall_auc": 0.39583484244838824,
+    "local_auc": 0.5191798941798942,
+    "local_minus_overall": 0.12334505173150595,
+    "local_correlations_with_base_signals": {
+      "HCDR3 scRMSD (ABB2)": -0.2907295547689421
+    }
+  },
+  {
+    "threshold": 2.25,
+    "n": 163,
+    "positives": 48,
+    "overall_auc": 0.39583484244838824,
+    "local_auc": 0.532608695652174,
+    "local_minus_overall": 0.1367738532037857,
+    "local_correlations_with_base_signals": {
+      "HCDR3 scRMSD (ABB2)": -0.23245870851857786
+    }
+  },
+  {
+    "threshold": 2.5,
+    "n": 131,
+    "positives": 32,
+    "overall_auc": 0.39583484244838824,
+    "local_auc": 0.6152146464646464,
+    "local_minus_overall": 0.21937980401625817,
+    "local_correlations_with_base_signals": {
+      "HCDR3 scRMSD (ABB2)": -0.3236525732827557
+    }
+  },
+  {
+    "threshold": 2.75,
+    "n": 106,
+    "positives": 20,
+    "overall_auc": 0.39583484244838824,
+    "local_auc": 0.6651162790697674,
+    "local_minus_overall": 0.2692814366213792,
+    "local_correlations_with_base_signals": {
+      "HCDR3 scRMSD (ABB2)": -0.361492605215188
+    }
+  },
+  {
+    "threshold": 3.0,
+    "n": 78,
+    "positives": 15,
+    "overall_auc": 0.39583484244838824,
+    "local_auc": 0.6412698412698412,
+    "local_minus_overall": 0.24543499882145298,
+    "local_correlations_with_base_signals": {
+      "HCDR3 scRMSD (ABB2)": -0.39859543200091513
+    }
+  }
+]
+CV standard deviation is repeat variability, not a confidence interval.
+LOGO repeats reuse identical natural-balance folds; they are not independent evidence.
+Hypothesis generation only. Inspect support, redundancy and a fine threshold plateau; no threshold is selected by this command. Local AUC alone is insufficient.

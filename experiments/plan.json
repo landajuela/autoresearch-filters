@@ -1,0 +1,13 @@
+{
+  "baseline": "../rules/baseline.json",
+  "candidates": [
+    {
+      "path": "../rules/additive.json",
+      "reason": "Test a weak alternate-model consistency term as a flat comparator. Pooled ESMFold AUC is adverse, so improvement is uncertain and guard failures must reject it."
+    },
+    {
+      "path": "../rules/gated.json",
+      "reason": "ESMFold is more discriminative inside the pre-stated ABB2 > 2.5 angstrom regime (local AUC 0.615 versus pooled 0.396) and has local base correlation -0.324. Test a weak centered adjustment there; neither independence nor transfer is established."
+    }
+  ]
+}

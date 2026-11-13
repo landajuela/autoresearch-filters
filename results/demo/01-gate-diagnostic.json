@@ -1,0 +1,115 @@
+{
+  "adjustment_signal": "HCDR3 scRMSD (ESMFold)",
+  "cache_key": "ea82f57b0257f0c5f2a8359c429c1e9ec9024d00e9aae3298533cc38aa73fa5d",
+  "config_hash": "ff19e1a2fe44de4233926b85e0fee3ac244fc9a4ad306a2661692d125ba2760d",
+  "dataset": "igdesign",
+  "dataset_hash": "0eb645fd09cff769c3c604676e80f60cbd3fede8954e75d7858f103fe123094a",
+  "diagnostics": [
+    {
+      "local_auc": 0.5191798941798942,
+      "local_correlations_with_base_signals": {
+        "HCDR3 scRMSD (ABB2)": -0.2907295547689421
+      },
+      "local_minus_overall": 0.12334505173150595,
+      "n": 186,
+      "overall_auc": 0.39583484244838824,
+      "positives": 60,
+      "threshold": 2.0
+    },
+    {
+      "local_auc": 0.532608695652174,
+      "local_correlations_with_base_signals": {
+        "HCDR3 scRMSD (ABB2)": -0.23245870851857786
+      },
+      "local_minus_overall": 0.1367738532037857,
+      "n": 163,
+      "overall_auc": 0.39583484244838824,
+      "positives": 48,
+      "threshold": 2.25
+    },
+    {
+      "local_auc": 0.6152146464646464,
+      "local_correlations_with_base_signals": {
+        "HCDR3 scRMSD (ABB2)": -0.3236525732827557
+      },
+      "local_minus_overall": 0.21937980401625817,
+      "n": 131,
+      "overall_auc": 0.39583484244838824,
+      "positives": 32,
+      "threshold": 2.5
+    },
+    {
+      "local_auc": 0.6651162790697674,
+      "local_correlations_with_base_signals": {
+        "HCDR3 scRMSD (ABB2)": -0.361492605215188
+      },
+      "local_minus_overall": 0.2692814366213792,
+      "n": 106,
+      "overall_auc": 0.39583484244838824,
+      "positives": 20,
+      "threshold": 2.75
+    },
+    {
+      "local_auc": 0.6412698412698412,
+      "local_correlations_with_base_signals": {
+        "HCDR3 scRMSD (ABB2)": -0.39859543200091513
+      },
+      "local_minus_overall": 0.24543499882145298,
+      "n": 78,
+      "overall_auc": 0.39583484244838824,
+      "positives": 15,
+      "threshold": 3.0
+    }
+  ],
+  "environment": {
+    "autoresearch-filters": "0.1.0",
+    "numpy": "2.4.6",
+    "pandas": "3.1.1",
+    "pydantic": "2.14.3",
+    "scikit-learn": "1.9.1"
+  },
+  "formula": "score = (1 * n(\"HCDR3 scRMSD (ABB2)\", 0..10, lower_is_better)) / 1",
+  "git": {
+    "commit": "d15dfd8da63875af830f2e820d1440a5399b12f5",
+    "dirty": true
+  },
+  "implementation_hash": "192d5444c77c83fbbd2f1fb0924e7b1b0d739040eaddade3d1e6ca169eb80707",
+  "mode": "gate-scan",
+  "notes": [
+    "CV standard deviation is repeat variability, not a confidence interval.",
+    "LOGO repeats reuse identical natural-balance folds; they are not independent evidence.",
+    "Hypothesis generation only. Inspect support, redundancy and a fine threshold plateau; no threshold is selected by this command. Local AUC alone is insufficient."
+  ],
+  "op": ">",
+  "partition_hash": "d74e6eaaef858ff64ce7b39843e04016da010b4f550fdff39810c61503fda49f",
+  "preprocessing": "1",
+  "record_version": 1,
+  "regime_signal": "HCDR3 scRMSD (ABB2)",
+  "rule": {
+    "expression": {
+      "kind": "additive",
+      "terms": [
+        {
+          "clip": null,
+          "direction": null,
+          "signal": "HCDR3 scRMSD (ABB2)",
+          "weight": 1.0
+        }
+      ]
+    },
+    "hypothesis": "Lower HCDR3 structural inconsistency may enrich binders; test the public ABB2 score without fitting.",
+    "name": "abb2-hcdr3"
+  },
+  "rule_hash": "e182e1d3e4bd340984a32d08bb0ae5444003352d661b59bb1b444c1c7aaa813b",
+  "seeds": [
+    1729,
+    1730,
+    1829,
+    1830,
+    1831,
+    1832,
+    1833
+  ],
+  "selection_eligible": false,
+  "timestamp": "2026-11-13T19:31:15.662539+00:00"
+}
