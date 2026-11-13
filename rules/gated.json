@@ -1,0 +1,33 @@
+{
+  "name": "abb2-with-regime-esmfold",
+  "hypothesis": "ESMFold is more discriminative inside the pre-stated ABB2 > 2.5 angstrom regime (local AUC 0.615 versus pooled 0.396) and has local base correlation -0.324. Test a weak centered adjustment there; neither independence nor transfer is established.",
+  "expression": {
+    "kind": "gated",
+    "base": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "HCDR3 scRMSD (ABB2)",
+          "weight": 1
+        }
+      ]
+    },
+    "gates": [
+      {
+        "name": "less-consistent-abb2",
+        "when": {
+          "signal": "HCDR3 scRMSD (ABB2)",
+          "op": ">",
+          "value": 2.5
+        },
+        "adjustments": [
+          {
+            "signal": "HCDR3 scRMSD (ESMFold)",
+            "weight": 0.25,
+            "center": 0.5
+          }
+        ]
+      }
+    ]
+  }
+}
