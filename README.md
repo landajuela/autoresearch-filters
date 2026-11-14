@@ -1,214 +1,127 @@
 # autoresearch-filters
 
-## The loop in plain terms
+A small, CPU-only harness for discovering **interpretable, training-free
+screening rules**. A coding agent (Claude, Codex, ...) proposes one small JSON
+formula at a time, a fixed evaluator scores it, and every step lands in a
+journal you can inspect later. The output is a readable rule, never a fitted model.
 
-You open a coding agent (Codex, Claude, ...) in this repository and ask it to
-run an experiment. It follows [AGENTS.md](AGENTS.md) and does this:
+## The loop
 
-1. **Set up the data (once).** `filters prepare` cuts the data into three piles:
-   *discovery* (the agent may look at it freely), *verification* (reserved, used
-   once) and the *final holdout* (locked, used once at the very end).
-2. **Measure the starting point.** Score `rules/baseline.json` on the discovery
-   pile. This is the number to beat.
-3. **Write down an idea.** Create a new JSON file in `rules/` with one small
-   change and a sentence saying why it should help. It is a formula, not a
-   trained model.
-4. **Test the idea.** `filters eval` scores the new rule and writes a results file.
-5. **Save it in git.** One commit for the rule, one for the results and a line
-   in the audit log. Failed ideas are recorded as `rejected`, never deleted.
-6. **Repeat steps 3–5** a few times, using what was learned to pick the next idea.
-7. **Pick the finalists.** List 1–3 ideas in `experiments/plan.json` and register
-   them. From then on they cannot be edited.
-8. **The one-shot check.** `filters transfer-check` picks the best finalist and
-   tests it once on the verification pile. If it does not truly beat the
-   baseline, the baseline is kept.
-9. **The final exam.** `filters final` scores the winner once on the locked
-   holdout. That number is the honest result, and the campaign is over.
+1. **Prepare (once).** The data is cut into three piles: *discovery* (look at it
+   freely), *verification* (used once) and the *final holdout* (used once). The
+   baseline rule is scored on discovery; that is the number to beat.
+2. **Try an idea.** Write a new JSON rule with a sentence saying why it should
+   help, and run `filters eval`. The result is appended to the journal.
+3. **Repeat** a few times, using what was learned to choose the next idea.
+4. **Verify (one shot).** Name 1-3 finalists. The best eligible one on discovery
+   is tested once on the verification pile. If it does not beat the baseline
+   there, the baseline is kept. Either way the campaign is now frozen.
+5. **Final (one shot).** The frozen rule is scored on the locked holdout.
 
-Everything stays local: the agent commits on your current branch and never
-pushes or creates a remote unless you ask. The shipped IgDesign example has
-already used its one-shot check and final exam, so rerunning it is a replay;
-new research needs [a dataset](docs/adding-datasets.md) nobody has selected on yet.
+The agent follows [AGENTS.md](AGENTS.md). Nothing is pushed anywhere.
 
-## What this is
+## Quickstart
 
-A small, CPU-only research harness for discovering **interpretable,
-training-free screening rules**. A coding agent proposes a small change to a
-JSON formula, runs a fixed evaluation, reads the recorded metrics, commits the
-rule, appends its outcome to an audit log, and uses the evidence to decide what
-to try next. Read [AGENTS.md](AGENTS.md) for the canonical agent prompt.
-
-The output is an auditable rule, never a fitted random forest, boosted tree or
-neural network. You supply already computed oracle signals and real outcome
-labels. The agent can be Codex, Claude, or another coding agent; no LLM API or
-model weights are bundled. This is a from-scratch implementation of the loop,
-not a reproduction of private prototypes or a claimed benchmark winner.
-
-## Quickstart: public IgDesign data
-
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then run
-from this repository. The pinned download is seven small CSVs (under 1 MB total).
-No model inference, GPU or training is required. The evaluation itself is a
-short laptop workload; first installation/download time depends on your network.
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/). The public
+IgDesign example downloads seven small CSVs with pinned checksums.
 
 ```sh
 uv sync --frozen --dev
-mkdir -p results/local
-uv run filters prepare --config configs/igdesign.json --work work/quickstart
+export FILTERS_CAMPAIGN=quickstart          # or pass -c quickstart to every command
 
-uv run filters eval --work work/quickstart --rule rules/baseline.json \
-  --output results/local/00-baseline.json > results/local/00-baseline.log
+uv run filters prepare --config configs/igdesign.json --baseline rules/baseline.json
+uv run filters eval rules/additive.json
+uv run filters eval rules/gated.json
+uv run filters note "Both ideas break a guard; verifying them anyway as the pre-stated finalists."
+uv run filters log --html                   # table in the terminal + campaigns/quickstart/journal.html
 
-# Register the exact two hypotheses before testing their outcomes.
-uv run filters transfer-check --work work/quickstart --plan experiments/plan.json
-uv run filters eval --work work/quickstart --rule rules/additive.json \
-  --output results/local/01-additive.json > results/local/01-additive.log
-uv run filters eval --work work/quickstart --rule rules/gated.json \
-  --output results/local/02-gated.json > results/local/02-gated.log
-uv run filters transfer-check --work work/quickstart \
-  --output results/local/03-transfer.json > results/local/03-transfer.log
-
-# The selected rule is now frozen. This endpoint can be called only once.
-uv run filters final --work work/quickstart \
-  --output results/local/04-final.json > results/local/04-final.log
-uv run filters report --record results/local/04-final.json
+uv run filters verify rules/additive.json rules/gated.json   # one use
+uv run filters final                                         # one use
 ```
 
-The quickstart uses `work/quickstart`, separate from the completed local demo in
-`work/igdesign`. The synthetic smoke test similarly uses its own fresh directory.
+This replays the shipped demonstration; its ideas and outcomes are already
+public, so it is not a fresh study. For a network-free run use
+`--config configs/synthetic.json --baseline rules/synthetic.json`.
 
-This replays a **pre-specified demonstration**, not a fresh independent benchmark
-study: the shipped candidates and public example results are already visible.
-Use fresh reserved evidence for new scientific selection. `prepare` is idempotent
-for an unchanged campaign. Run filenames are immutable; transfer and final are
-one-use. Do not delete markers or change seeds to make more attempts.
+## The journal
 
-The example uses the public [IgDesign release](https://github.com/AbSciBio/igdesign)
-and its supplied `Binder` labels. The loader uses inverse-folding candidates from
-seven unblinded antibody–antigen systems and existing scRMSD signals. The fixed
-final system is `Utomilumab-TNFRSF9`; the remaining systems form a train pool split
-into discovery and reserved verification rows. Both halves use leave-one-system-out
-CV. The final system is never scored during dev. See
-[data provenance, exclusions and licensing](data/README.md) for exact decisions.
-Upstream data are downloaded with pinned SHA-256 checksums, never vendored.
+Everything a campaign did is in `campaigns/NAME/journal.jsonl`: one JSON line per
+event, appended by the commands themselves. `filters log` prints it:
 
-For a network-free dataset after package installation:
-
-```sh
-uv run filters prepare --config configs/synthetic.json --work work/synthetic-quickstart
-uv run filters eval --work work/synthetic-quickstart --rule rules/synthetic.json \
-  --output results/local/synthetic.json
-uv run pytest
+```
+#  kind     data          rule                      parent      roc_auc        Δ  ±noise  pr_auc  precision@5  precision@10  precision@20  verdict
+0  prepare  igdesign: discovery 361, verification 361, holdout 125 rows
+1  eval     discovery     abb2-hcdr3                –            0.6222        –       –  0.4034       0.4000        0.3833        0.3500  · baseline
+2  note     Replay of the original demonstration ...
+3  eval     discovery     abb2-plus-weak-esmfold    abb2-hcdr3   0.6157  -0.0065  0.0300  0.3929       0.3667        0.3833        0.3667  ⚠ guard-broken
+4  eval     discovery     abb2-with-regime-esmfold  abb2-hcdr3   0.6300  +0.0077  0.0107  0.4198       0.4000        0.3500        0.3417  ⚠ guard-broken
+5  note     Both ideas break a guard on discovery ...
+6  verify   verification  abb2-hcdr3                –            0.6003        –       –  0.4048       0.3333        0.3167        0.3417  ✕ baseline-kept
+7  final    holdout       abb2-hcdr3                –            0.6797        –       –  0.4150       0.6000        0.6000        0.5000  ■ final
 ```
 
-## Dataset schema
+That is the committed [demo journal](campaigns/demo/journal.jsonl), computed by
+this code on the pinned public release. Both ideas were rejected and the
+baseline was kept: a small demonstration of the mechanics, not a benchmark result.
 
-[Pydantic v2 models](src/autoresearch_filters/config.py) reject unknown keys,
-invalid ranges, contradictory options and outcome columns in the signal space.
-A JSON dataset config declares:
+- **Each row stands alone.** It holds the rule's name, parent, hypothesis,
+  readable formula, full JSON, metrics, Δ against the baseline on the same data,
+  per-fold values of the primary metric, the verdict, and the git commit that
+  was checked out when it ran.
+- **`parent`** links an idea to the rule it came from, so the journal is a tree.
+- **Verdicts** are computed, not hand-written: `better`, `within-noise`, `worse`
+  (primary-metric change against twice the `noise`), or `guard-broken` (ROC-AUC,
+  PR-AUC or a precision@K fell more than `guard_tolerance` below the baseline).
+  Errors such as an unknown signal are logged as `error`.
+- **`noise`** is the standard error of the per-fold difference from the
+  baseline. With a handful of folds it is a rough yardstick, not a significance test.
+- **`filters log --html`** writes one self-contained page: headline tiles, the
+  primary metric of every idea in the order tried, the lineage tree, and the
+  full journal with expandable details. It is regenerated on demand and git-ignored.
 
-| Field | Meaning |
+Commit `journal.jsonl` together with each new rule. The campaign's `data/`
+directory is git-ignored.
+
+## Rule language
+
+`n(signal)` clips a signal to its configured range, scales it to [0, 1] and
+orients it so that higher is better.
+
+| Kind | Formula |
 | --- | --- |
-| `source` | CSV/Parquet path, or trusted preparation-only `module:function` loader |
-| `id_column` | Stable unique candidate ID for persisted partitions and tie-breaking |
-| `label_column`, `success_value` | Binary experimental outcome and positive value |
-| `group_column` | Optional system/target grouping |
-| `signals` | Allowlisted computed oracles: direction, numeric range, missing policy, optional units/description |
-| `exclude_columns` | Measurements/metadata explicitly forbidden in rules |
-| `split` | Holdout, verification and CV strategies; fixed seeds, folds and repeats |
-| `protocol` | Top-K, partial-AUC limit, sign checks, objective, guards and search budget |
+| `additive` | `sum(w * n(signal)) / sum(w)`, weights ≥ 0 |
+| `product` | `product(n(signal) ** exponent)`, exponents > 0 |
+| `gated` | an additive or product base, plus `weight * (n(signal) - center)` terms that are active only where a raw signal passes a threshold |
 
-Each signal declares `higher_is_better` or `lower_is_better`. A negated error can
-need **higher**-is-better even though a positive error needs **lower**-is-better.
-Oriented single-signal AUC is checked on discovery rows and warns loudly or
-asserts when it contradicts that declaration. Nothing silently flips signs.
-Missing policies are `error`, `drop`, or a pre-specified `constant`; no fitted
-imputation occurs. See [how to add a dataset](docs/adding-datasets.md).
+See [rules/gated.json](rules/gated.json) for all of it in one file. A gate's
+weight may be negative, and a `center` of 0.5 lets it both reward and penalize.
+Rules cannot reference labels or any column outside the config's signal list,
+and cannot load code or fit anything.
 
-## Rule language, including gates
+## How a rule gets accepted
 
-Let `n(signal)` clip-normalize to [0,1] in the dataset's declared direction.
-The same formula works on new column semantics without code changes.
+- **Discovery** scores are cross-validated: leave-one-group-out, or repeated
+  stratified K-fold. Nothing is fitted, so folds only define how scores are averaged.
+- **`verify`** considers only finalists that improve the primary metric on
+  discovery without breaking a guard, takes the best, and accepts it only if it
+  also improves the primary metric on the reserved rows with all guards intact.
+  The row records the discovery gain, the transfer gain, their gap, and how many
+  ideas had been evaluated before.
+- **One use** is enforced by marker files written before the reserved data is
+  read. This prevents accidents; it is not tamper-proof against someone who
+  deletes files on purpose.
 
-| Primitive | Formula/behavior |
-| --- | --- |
-| Hard filter | Conjunctions/disjunctions of raw comparisons, producing 0 or 1 |
-| Soft additive | `sum(w * n(signal)) / sum(w)` with nonnegative weights |
-| Product | `product(n(signal) ** exponent)` with positive exponents |
-| Gated | Base score plus signed, optionally centered terms active only in a named regime |
-
-A gate has a signal, threshold and active side, a list of adjustments, and optional
-child gates. Children require all ancestor conditions. Opposite signed weights
-in different regimes can reward a signal in one region and discount it elsewhere.
-A 0.5 center allows both penalties and rewards. Custom clip ranges are allowed;
-direction overrides must agree with the schema. See [gate arithmetic and diagnostic](docs/gates.md)
-and the concrete [gated rule](rules/gated.json).
-
-The canonical pretty-printer emits a readable pseudo-formula with explicit ranges
-and directions. Lossless round trips use JSON; the pseudo-formula is explanatory,
-not executable code. No rule can load a model, import Python, call a loader, or fit.
-
-## Fixed evaluation and selection
-
-- Splits: external holdout, seeded stratified random holdout, group-disjoint holdout;
-  random CV, leave-one-group-out and repeated group-disjoint CV. Partitions are
-  persisted with IDs, hashes and seeds. At least five repeat seeds are required.
-- Metrics: natural ROC-AUC, balanced-subsample ROC-AUC, PR-AUC (average precision),
-  standardized partial ROC-AUC, and success/precision/recall@K. Means and sample
-  SDs are reported over repeats and over folds. LOGO repeat SD can be zero because
-  natural folds repeat exactly; it is not an uncertainty guarantee.
-- Prevalence matching: optionally reweight negatives to a pre-specified target
-  prevalence. A separate explicit opt-in can freeze the holdout's aggregate ratio
-  during preparation; it is off in the shipped example. Dev never opens its rows.
-- `eval --mode dev` measures discovery CV. `eval --mode search` enforces a bounded
-  hypothesis-generation budget. Neither authorizes accepting a rule.
-- `transfer-check --plan` seals 1–3 candidates and their reasons. The check selects
-  on discovery and measures on reserved rows, guarding PR and top-K along with ROC.
-  It then freezes either the surviving candidate or the original baseline.
-- `final` evaluates that frozen choice once on the locked holdout. Dev code has no
-  source/holdout loader. Consumed markers cannot be reset through the CLI.
-
-**Never take a large dev scan's argmax as a discovery.** Prefer small mechanistic
-hypotheses and broad threshold plateaus. Check local discriminativeness **and**
-redundancy before adding a gate. Record negative results. Stop if dev gains fail
-to transfer; more CV repeats do not repair selection bias. The full
-[selection rationale and boundary](docs/selection.md) describes limitations,
-undefined metrics, aggregation and the deliberately conservative one-use policy.
-
-## Audit trail and demonstration
-
-Every evaluated run emits an immutable JSON record and a human-readable stdout
-log. Records embed the formula, rule and implementation hashes, pre-run git state,
-source/config/partition/cache hashes, seeds, package versions and all metrics.
-The normalized snapshot cache is invalidated by config/preprocessing changes.
-
-After committing a rule, append an audit row **from the JSON**, not by scraping:
-
-```sh
-uv run filters report --record results/local/01-additive.json \
-  --log results/local/results.jsonl --commit HEAD --rule-path rules/additive.json \
-  --decision hypothesis --note 'Pre-stated complementary score; transfer pending.'
-```
-
-The append command checks that the cited commit contains the exact evaluated rule
-and evaluator implementation. The pre-run commit and post-run commit are separate
-fields, avoiding self-reference. `accepted` is permitted only for successful
-transfer records. Keep all rejected hypotheses, with explanatory notes.
-See [the measured demonstration](results/demo/README.md) for committed records
-and outcomes. No performance target was set and no favorable result is promised.
+To use your own data see [docs/adding-datasets.md](docs/adding-datasets.md);
+for the example's provenance and licensing see [data/README.md](data/README.md).
 
 ## Development
 
 ```sh
-uv run ruff check .
-uv run ruff format --check .
-uv run pytest
-uv run pre-commit install
+uv run ruff check . && uv run ruff format --check . && uv run pytest
 ```
 
-The GitHub Actions workflow runs lint, format and the synthetic suite without
-fetching IgDesign. Core dependencies are NumPy, pandas, scikit-learn, Pydantic
-and Typer; no ML training stack is installed. Parquet requires an optional,
-already installed pandas engine; CSV works out of the box. See
-[CONTRIBUTING.md](CONTRIBUTING.md). Code is [MIT licensed](LICENSE).
-[CITATION.cff](CITATION.cff) is explicitly a placeholder for release metadata.
+Dependencies are NumPy, pandas, scikit-learn, Pydantic and Typer. Code is
+[MIT licensed](LICENSE). The repository's first version had per-run record files,
+hash seals and a wider rule language; its original demonstration records are in
+git history (`results/demo/` at commit `93e9ecb`) and report the same numbers
+as the demo journal above.

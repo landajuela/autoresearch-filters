@@ -1,118 +1,89 @@
-"""Thin command line interface; the final-holdout module is imported only by final."""
+"""Thin command line interface over the campaign loop."""
 
 from pathlib import Path
 from typing import Annotated
 
 import typer
 
-from .io import read_json
-from .reporting import summarize
-from .rules import load_rule
+from . import campaign as loop
+from . import journal
 
 app = typer.Typer(no_args_is_help=True, pretty_exceptions_enable=False)
-Work = Annotated[Path, typer.Option(help="Prepared campaign directory")]
-Output = Annotated[Path, typer.Option(help="New immutable JSON record path")]
+Campaign = Annotated[
+    str,
+    typer.Option("--campaign", "-c", envvar="FILTERS_CAMPAIGN", help="Name under campaigns/"),
+]
 
 
-def invoke(function, *args, **kwargs):
+def run(function, name: str, *args):
     try:
-        return function(*args, **kwargs)
-    except (ValueError, OSError, AssertionError) as exc:
-        raise typer.BadParameter(str(exc)) from exc
+        return function(Path("campaigns") / name, *args)
+    except (ValueError, OSError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+
+def show(name: str, *rows: dict) -> None:
+    primary = journal.primary_metric(journal.read(Path("campaigns") / name))
+    for row in rows:
+        typer.echo(journal.summary(row, primary))
 
 
 @app.command()
-def prepare(config: Annotated[Path, typer.Option()], work: Work = Path("work/igdesign")):
-    """Fetch, validate, partition and seal a dataset (idempotent for identical config)."""
-    from .prepare import prepare as prepare_dataset
-
-    typer.echo(invoke(prepare_dataset, config, work))
+def prepare(
+    config: Annotated[Path, typer.Option(help="Dataset config JSON")],
+    baseline: Annotated[Path, typer.Option(help="Rule every idea is compared against")],
+    campaign: Campaign = "main",
+):
+    """Cut the data into discovery / verification / holdout and score the baseline."""
+    rows = run(lambda c: loop.prepare(config, baseline, c), campaign)
+    for name, auc in rows[0]["signal_auc"].items():
+        flag = "  <-- below 0.5: check the declared direction" if auc < 0.5 else ""
+        typer.echo(f"signal {name!r}: oriented discovery AUC {auc:.4f}{flag}")
+    show(campaign, rows[1])
 
 
 @app.command("eval")
-def evaluate(
-    rule: Annotated[Path, typer.Option()],
-    output: Output,
-    work: Work = Path("work/igdesign"),
-    mode: str = "dev",
-):
-    """Evaluate discovery CV; bounded search outputs are hypotheses, never selections."""
-    from .dev import evaluate as evaluate_rule
-
-    result = invoke(evaluate_rule, work, invoke(load_rule, rule), output, mode)
-    typer.echo(summarize(result))
-
-
-@app.command("transfer-check")
-def transfer_check(
-    work: Work = Path("work/igdesign"),
-    plan: Annotated[
-        Path | None, typer.Option(help="Register 1–3 candidates before verification")
-    ] = None,
-    output: Annotated[Path | None, typer.Option()] = None,
-):
-    """With --plan: seal hypotheses. With --output: select, verify once, then freeze."""
-    from .transfer import register
-    from .transfer import transfer_check as check
-
-    if (plan is None) == (output is None):
-        raise typer.BadParameter("provide exactly one of --plan or --output")
-    if plan is not None:
-        result = invoke(register, work, plan)
-        typer.echo(
-            f"Registered {len(result['candidates'])} candidates; verification remains sealed."
-        )
-    else:
-        typer.echo(summarize(invoke(check, work, output)))
-
-
-@app.command("gate-scan")
-def gate_scan(
-    base: Annotated[Path, typer.Option()],
-    regime_signal: Annotated[str, typer.Option()],
-    adjustment_signal: Annotated[str, typer.Option()],
-    thresholds: Annotated[str, typer.Option(help="Comma-separated fine grid; no argmax selection")],
-    output: Output,
-    work: Work = Path("work/igdesign"),
-    op: str = ">",
-):
-    """Compare local/overall AUC and base-signal redundancy on discovery rows."""
-    from .diagnostics import gate_scan as scan
-
-    try:
-        grid = [float(value) for value in thresholds.split(",")]
-    except ValueError as exc:
-        raise typer.BadParameter("thresholds must be comma-separated numbers") from exc
-    result = invoke(
-        scan, work, invoke(load_rule, base), regime_signal, grid, adjustment_signal, op, output
-    )
-    typer.echo(summarize(result))
+def evaluate(rule: Path, campaign: Campaign = "main"):
+    """Score one rule on discovery CV and log it. Failures are logged too."""
+    show(campaign, run(loop.evaluate, campaign, rule))
 
 
 @app.command()
-def report(
-    record: Annotated[Path, typer.Option()],
-    log: Annotated[Path | None, typer.Option(help="Append one machine-derived audit row")] = None,
-    commit: str = "HEAD",
-    rule_path: str = "rules/current.json",
-    decision: str = "hypothesis",
-    note: str = "",
-):
-    """Read metrics or link an immutable record to its tested, committed rule."""
-    from .reporting import append_result
-
-    typer.echo(summarize(invoke(read_json, record)))
-    if log is not None:
-        invoke(append_result, record, log, commit, rule_path, decision, note)
-        typer.echo(f"Appended audit row to {log}")
+def note(text: str, campaign: Campaign = "main"):
+    """Add a free-text entry to the journal."""
+    run(loop.note, campaign, text)
 
 
 @app.command()
-def final(output: Output, work: Work = Path("work/igdesign")):
-    """Evaluate the frozen rule on the locked holdout once; a second call fails."""
-    from .final import final as run_final
+def verify(rules: list[Path], campaign: Campaign = "main"):
+    """ONE USE: pick among 1-3 finalists on discovery, test once on reserved rows, freeze."""
+    show(campaign, run(loop.verify, campaign, rules))
 
-    typer.echo(summarize(invoke(run_final, work, output)))
+
+@app.command()
+def final(campaign: Campaign = "main"):
+    """ONE USE: score the frozen rule on the locked holdout."""
+    show(campaign, run(loop.final, campaign))
+
+
+@app.command()
+def log(
+    campaign: Campaign = "main",
+    html: Annotated[bool, typer.Option("--html", help="Also write journal.html")] = False,
+):
+    """Show how the search went: every idea, note and decision in order."""
+    from .report import render
+
+    path = Path("campaigns") / campaign
+    rows = journal.read(path)
+    if not rows:
+        typer.echo(f"Error: no journal in {path}", err=True)
+        raise typer.Exit(1)
+    typer.echo(journal.table(rows))
+    if html:
+        (path / "journal.html").write_text(render(rows, campaign))
+        typer.echo(f"\nWrote {path / 'journal.html'}")
 
 
 if __name__ == "__main__":

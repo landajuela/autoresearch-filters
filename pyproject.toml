@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "autoresearch-filters"
 version = "0.1.0"
-description = "Auditable, training-free screening rules with a sealed evaluation protocol"
+description = "Interpretable, training-free screening rules with a journaled research loop"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

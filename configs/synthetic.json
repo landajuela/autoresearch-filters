@@ -1,9 +1,6 @@
 {
   "name": "synthetic",
-  "source": {
-    "kind": "file",
-    "path": "../data/synthetic.csv"
-  },
+  "source": "../data/synthetic.csv",
   "id_column": "id",
   "label_column": "success",
   "success_value": 1,
@@ -29,19 +26,14 @@
       "range": [
         0,
         1
-      ],
-      "expected_positive_auc": false
+      ]
     }
   },
-  "exclude_columns": [
-    "measured_response"
-  ],
   "split": {
-    "holdout": "group",
     "holdout_groups": [
       "g7"
     ],
-    "dev": "random",
+    "cv": "random",
     "folds": 3,
     "repeats": 5,
     "seed": 17
@@ -51,8 +43,6 @@
       1,
       5,
       10
-    ],
-    "max_fpr": 0.1,
-    "sign_policy": "error"
+    ]
   }
 }

@@ -1,12 +1,6 @@
 {
   "name": "igdesign",
-  "source": {
-    "kind": "loader",
-    "hook": "autoresearch_filters.datasets:igdesign",
-    "kwargs": {
-      "cache_dir": "../data/downloads"
-    }
-  },
+  "source": "igdesign",
   "id_column": "candidate_id",
   "label_column": "Binder",
   "success_value": true,
@@ -18,11 +12,8 @@
         0,
         10
       ],
-      "units": "angstrom",
-      "description": "Public precomputed structural self-consistency RMSD; a smaller deviation is preferred.",
-      "missing": {
-        "policy": "drop"
-      }
+      "description": "Public precomputed structural self-consistency RMSD in angstrom; a smaller deviation is preferred.",
+      "missing": "drop"
     },
     "HCDR3 scRMSD (ABB3)": {
       "direction": "lower_is_better",
@@ -30,11 +21,8 @@
         0,
         10
       ],
-      "units": "angstrom",
-      "description": "Public precomputed structural self-consistency RMSD; a smaller deviation is preferred.",
-      "missing": {
-        "policy": "drop"
-      }
+      "description": "Public precomputed structural self-consistency RMSD in angstrom; a smaller deviation is preferred.",
+      "missing": "drop"
     },
     "HCDR3 scRMSD (ESMFold)": {
       "direction": "lower_is_better",
@@ -42,11 +30,8 @@
         0,
         10
       ],
-      "units": "angstrom",
-      "description": "Public precomputed structural self-consistency RMSD; a smaller deviation is preferred.",
-      "missing": {
-        "policy": "drop"
-      }
+      "description": "Public precomputed structural self-consistency RMSD in angstrom; a smaller deviation is preferred.",
+      "missing": "drop"
     },
     "Fv scRMSD (ABB2)": {
       "direction": "lower_is_better",
@@ -54,36 +39,16 @@
         0,
         10
       ],
-      "units": "angstrom",
-      "description": "Public precomputed structural self-consistency RMSD; a smaller deviation is preferred.",
-      "missing": {
-        "policy": "drop"
-      }
+      "description": "Public precomputed structural self-consistency RMSD in angstrom; a smaller deviation is preferred.",
+      "missing": "drop"
     }
   },
-  "exclude_columns": [
-    "KD (nM)",
-    "Binding Replicates",
-    "Replicates",
-    "Ratio Binding Replicates",
-    "Method",
-    "Target",
-    "Reference Ab",
-    "HCDR1",
-    "HCDR2",
-    "HCDR3",
-    "HCDRs Designed"
-  ],
   "split": {
-    "holdout": "group",
     "holdout_groups": [
       "Utomilumab-TNFRSF9"
     ],
-    "dev": "logo",
-    "folds": 3,
-    "repeats": 5,
-    "seed": 1729,
-    "verification": "split_positive"
+    "cv": "logo",
+    "seed": 1729
   },
   "protocol": {
     "top_k": [
@@ -91,10 +56,7 @@
       10,
       20
     ],
-    "max_fpr": 0.1,
-    "sign_policy": "warn",
-    "guard_tolerance": 0.01,
     "primary_metric": "roc_auc",
-    "search_budget": 12
+    "guard_tolerance": 0.01
   }
 }

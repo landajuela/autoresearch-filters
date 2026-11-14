@@ -1,118 +1,78 @@
-import numpy as np
 import pandas as pd
 import pytest
 from pydantic import ValidationError
 
-from autoresearch_filters.config import FeatureSpace
-from autoresearch_filters.rules import Rule, pretty, score, validate_rule
+from autoresearch_filters.config import Config, digest
+from autoresearch_filters.rules import Rule, pretty, score
 
-
-@pytest.fixture
-def schema():
-    return FeatureSpace.model_validate(
-        {
-            "name": "fixture",
-            "id_column": "id",
-            "label_column": "label",
-            "success_value": 1,
-            "signals": {
-                "x": {"direction": "higher_is_better", "range": [0, 10]},
-                "error": {"direction": "lower_is_better", "range": [0, 10]},
-            },
-        }
-    )
-
-
-def test_gate_hand_arithmetic_and_round_trip(schema):
-    rule = Rule.model_validate(
-        {
-            "name": "nested",
-            "hypothesis": "fixture",
-            "expression": {
-                "kind": "gated",
-                "base": {"kind": "additive", "terms": [{"signal": "x"}]},
-                "gates": [
-                    {
-                        "name": "outer",
-                        "when": {"signal": "x", "op": ">", "value": 5},
-                        "adjustments": [{"signal": "error", "weight": 2, "center": 0.5}],
-                        "children": [
-                            {
-                                "name": "inner",
-                                "when": {"signal": "error", "op": "<", "value": 3},
-                                "adjustments": [{"signal": "x", "weight": -1, "center": 0.5}],
-                            }
-                        ],
-                    }
-                ],
-            },
-        }
-    )
-    frame = pd.DataFrame({"x": [2, 8, 8, 5], "error": [2, 2, 8, 1]})
-    # outer: +2*(0.8-.5)=.6; inner: -(0.8-.5)=-.3; third: +2*(.2-.5)=-.6
-    np.testing.assert_allclose(score(rule, frame, schema), [0.2, 1.1, 0.2, 0.5])
-    restored = Rule.model_validate_json(rule.model_dump_json())
-    assert restored == rule
-    assert pretty(restored, schema) == pretty(rule, schema)
-    assert "lower_is_better" in pretty(rule, schema)
-
-
-@pytest.mark.parametrize(
-    "expression,expected",
-    [
-        (
-            {"kind": "product", "factors": [{"signal": "x", "exponent": 2}, {"signal": "error"}]},
-            [0.032, 0.128],
-        ),
-        (
-            {
-                "kind": "hard",
-                "condition": {
-                    "kind": "any",
-                    "conditions": [
-                        {"kind": "threshold", "signal": "x", "op": ">", "value": 5},
-                        {"kind": "threshold", "signal": "error", "op": "<", "value": 3},
-                    ],
-                },
-            },
-            [1, 1],
-        ),
-        (
-            {
-                "kind": "additive",
-                "terms": [{"signal": "x", "weight": 1}, {"signal": "error", "weight": 3}],
-            },
-            [0.65, 0.35],
-        ),
-    ],
+CONFIG = Config.model_validate(
+    {
+        "name": "toy",
+        "source": "toy.csv",
+        "id_column": "id",
+        "label_column": "y",
+        "success_value": 1,
+        "signals": {
+            "up": {"direction": "higher_is_better", "range": [0, 10]},
+            "err": {"direction": "lower_is_better", "range": [0, 4]},
+        },
+    }
 )
-def test_primitives(schema, expression, expected):
-    rule = Rule(name="fixture", hypothesis="known answers", expression=expression)
-    np.testing.assert_allclose(
-        score(rule, pd.DataFrame({"x": [2, 8], "error": [2, 8]}), schema), expected
-    )
-    assert pretty(Rule.model_validate_json(rule.model_dump_json()), schema) == pretty(rule, schema)
+FRAME = pd.DataFrame({"up": [0.0, 5.0, 20.0], "err": [0.0, 1.0, 4.0]})
 
 
-def test_forbidden_and_direction(schema):
-    for term in [{"signal": "label"}, {"signal": "error", "direction": "higher_is_better"}]:
-        rule = Rule(
-            name="bad", hypothesis="invalid", expression={"kind": "additive", "terms": [term]}
-        )
-        with pytest.raises(ValueError):
-            validate_rule(rule, schema)
+def rule(expression: dict) -> Rule:
+    return Rule.model_validate({"name": "r", "hypothesis": "h", "expression": expression})
 
 
-@pytest.mark.parametrize(
-    "expression",
-    [
-        {"kind": "additive", "terms": [{"signal": "x", "weight": 0}]},
-        {"kind": "product", "factors": [{"signal": "x", "exponent": -1}]},
-        {"kind": "additive", "terms": [{"signal": "x", "clip": [2, 1]}]},
-        {"kind": "python", "code": "print(1)"},
-        {"kind": "constant", "value": float("nan")},
-    ],
-)
-def test_invalid_rule(expression):
+def test_additive_normalizes_clips_and_orients():
+    r = rule({"kind": "additive", "terms": [{"signal": "up"}, {"signal": "err", "weight": 3}]})
+    # n(up) = [0, .5, 1] (clipped); n(err) = [1, .75, 0] (lower is better)
+    assert score(r, FRAME, CONFIG) == pytest.approx([0.75, 0.6875, 0.25])
+
+
+def test_product_and_gate_arithmetic():
+    product = rule({"kind": "product", "factors": [{"signal": "up"}, {"signal": "err"}]})
+    assert score(product, FRAME, CONFIG) == pytest.approx([0, 0.375, 0])
+    gate = {
+        "name": "bad-err",
+        "when": {"signal": "err", "op": ">", "value": 0.5},
+        "adjustments": [{"signal": "up", "weight": 0.5, "center": 0.5}],
+    }
+    base = {"kind": "additive", "terms": [{"signal": "err"}]}
+    gated = rule({"kind": "gated", "base": base, "gates": [gate]})
+    # Gate is on the RAW value; the adjustment is centered, so it can reward or penalize.
+    assert score(gated, FRAME, CONFIG) == pytest.approx([1, 0.75, 0.25])
+    text = pretty(gated, CONFIG)
+    assert '1["err" > 0.5]' in text and "lower_is_better" in text
+
+
+def test_language_is_closed():
+    with pytest.raises(ValueError, match="unknown signals"):
+        score(rule({"kind": "additive", "terms": [{"signal": "y"}]}), FRAME, CONFIG)
+    for bad in [
+        {"kind": "python", "code": "1"},
+        {"kind": "additive", "terms": [{"signal": "up", "weight": -1}]},
+        {"kind": "additive", "terms": [{"signal": "up", "fit": True}]},
+        {"kind": "additive", "terms": []},
+    ]:
+        with pytest.raises(ValidationError):
+            rule(bad)
+
+
+def test_digest_ignores_formatting_but_not_content():
+    a = rule({"kind": "additive", "terms": [{"signal": "up"}]})
+    b = rule({"terms": [{"weight": 1.0, "signal": "up"}], "kind": "additive"})
+    c = rule({"kind": "additive", "terms": [{"signal": "err"}]})
+    assert digest(a) == digest(b) != digest(c)
+
+
+def test_config_rejects_outcome_columns_as_signals_and_unknown_keys():
+    raw = CONFIG.model_dump(mode="json")
+    leaky = {**raw, "signals": {**raw["signals"], "y": raw["signals"]["up"]}}
+    with pytest.raises(ValidationError, match="cannot be signals"):
+        Config.model_validate(leaky)
     with pytest.raises(ValidationError):
-        Rule(name="bad", hypothesis="invalid", expression=expression)
+        Config.model_validate({**raw, "surprise": 1})
+    with pytest.raises(ValidationError, match="group_column"):
+        Config.model_validate({**raw, "split": {"cv": "logo"}})

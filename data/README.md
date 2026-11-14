@@ -29,9 +29,9 @@ success, as supplied by the release; no affinity threshold is invented.
 Only four precomputed scRMSD columns enter the example rule space. All are raw,
 non-negated deviations: smaller is declared better. Clip ranges of 0–10 angstrom
 are **pre-specified harness choices**, not published or fitted cutoffs. Missing
-values in any configured signal drop the row before splitting, with a preparation
-audit kept in the sealed vault. Experimental affinity and replicate columns are
-explicitly excluded. No sequences are used as learned features.
+values in any configured signal drop the row before splitting. Experimental
+affinity and replicate columns are not in the signal allowlist, so they are
+dropped at preparation. No sequences are used as learned features.
 
 The final system, `Utomilumab-TNFRSF9`, was fixed before evaluating any rule
 (alphabetically last among the shipped filenames). The other systems form the
@@ -44,10 +44,10 @@ from the entire train pool.
 To download and prepare:
 
 ```sh
-uv run filters prepare --config configs/igdesign.json --work work/igdesign
+uv run filters prepare --config configs/igdesign.json --baseline rules/baseline.json -c my-study
 ```
 
 Or fetch and checksum just the upstream files with
 `uv run python scripts/download_igdesign.py`. Do not commit `data/downloads/`
-or `work/`. The public demonstration records contain aggregate metrics and
-provenance hashes, not released candidate features or experimental labels.
+or `campaigns/*/data/` (both are git-ignored). The committed demonstration
+journal contains aggregate metrics, not candidate features or experimental labels.

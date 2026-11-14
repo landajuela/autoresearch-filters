@@ -19,5 +19,5 @@ jobs:
       - run: uv run --frozen ruff check .
       - run: uv run --frozen ruff format --check .
       - run: uv run --frozen pytest
-      - run: uv run --frozen filters prepare --config configs/synthetic.json --work work/ci
-      - run: uv run --frozen filters eval --work work/ci --rule rules/synthetic.json --output results/local/ci.json
+      - run: uv run --frozen filters prepare --config configs/synthetic.json --baseline rules/synthetic.json --campaign ci
+      - run: uv run --frozen filters log --campaign ci
