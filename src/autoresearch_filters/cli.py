@@ -29,6 +29,85 @@ def show(name: str, *rows: dict) -> None:
         typer.echo(journal.summary(row, primary))
 
 
+def _columns(value: str) -> list[str]:
+    return [part.strip() for part in value.split(",") if part.strip()]
+
+
+@app.command()
+def init(
+    data: Annotated[Path, typer.Option(help="CSV/Parquet table: computed columns + one outcome")],
+    label: Annotated[str, typer.Option(help="Outcome column; inferred when omitted")] = "",
+    success: Annotated[str, typer.Option(help="Outcome value that means success")] = "",
+    lower: Annotated[
+        str, typer.Option(help="Columns where SMALLER is better, comma-separated")
+    ] = "",
+    higher: Annotated[
+        str, typer.Option(help="Columns where LARGER is better, comma-separated")
+    ] = "",
+    signals: Annotated[str, typer.Option(help="Use exactly these signal columns")] = "",
+    id_column: Annotated[str, typer.Option("--id", help="ID column; row position if omitted")] = "",
+    group: Annotated[str, typer.Option(help="Group column, e.g. target or batch")] = "",
+    name: Annotated[str, typer.Option(help="Config name; the file stem if omitted")] = "",
+    baseline_signal: Annotated[str, typer.Option(help="Baseline is this one signal")] = "",
+    force: Annotated[bool, typer.Option("--force", help="Overwrite existing files")] = False,
+):
+    """Write a dataset config and a baseline rule for your own table, then print what to run."""
+    from .bootstrap import initialise
+
+    try:
+        report = initialise(
+            data,
+            label=label,
+            success=success,
+            id_column=id_column,
+            group=group,
+            signals=_columns(signals),
+            lower=_columns(lower),
+            higher=_columns(higher),
+            name=name,
+            baseline_signal=baseline_signal,
+            force=force,
+        )
+    except (ValueError, OSError, KeyError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    config = report["config"]
+    typer.echo(f"{data}: {report['rows']} rows, {len(config['signals'])} signals kept")
+    typer.echo(
+        f"outcome {config['label_column']!r}: success is {config['success_value']!r}, "
+        f"{report['positives']} of {report['usable_rows']} usable rows"
+    )
+    for column, found in report["signals"].items():
+        lo, hi = found["spec"]["range"]
+        missing = (
+            f", {found['missing_rows']} rows dropped for missing values"
+            if found["missing_rows"]
+            else ""
+        )
+        typer.echo(
+            f"  {column}: {found['spec']['direction']} [{found['direction_source']}], "
+            f"range [{lo:g}, {hi:g}]{missing}"
+        )
+    for column, reason in report["skipped"].items():
+        typer.echo(f"  skipped {column}: {reason}")
+    typer.echo(f"\nWrote {report['config_path']} and {report['baseline_path']}")
+    typer.echo("Check every direction before searching: a direction is a claim about the")
+    typer.echo("signal, and `prepare` prints an oriented AUC below 0.5 when a claim looks wrong.")
+    if min(report["positives"], report["negatives"]) < 30:
+        typer.echo(
+            f"Caution: only {report['positives']} successes and {report['negatives']} failures, "
+            "so per-fold metrics will be very noisy."
+        )
+    typer.echo("\nThen run:")
+    typer.echo(
+        f"  uv run filters prepare --config {report['config_path']} "
+        f"--baseline {report['baseline_path']} -c run1"
+    )
+    typer.echo("  uv run filters eval rules/my-idea.json -c run1       # one idea at a time")
+    typer.echo("See docs/adding-datasets.md for what to fix by hand, AGENTS.md for the loop.")
+
+
 @app.command()
 def prepare(
     config: Annotated[Path, typer.Option(help="Dataset config JSON")],

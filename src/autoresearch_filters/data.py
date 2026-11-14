@@ -42,28 +42,42 @@ def igdesign(cache: Path) -> pd.DataFrame:
 LOADERS = {"igdesign": igdesign}
 
 
-def load_source(config: Config, base: Path) -> pd.DataFrame:
-    """`base` is the config file's directory; downloads are cached in ../data/downloads."""
-    if config.source in LOADERS:
-        return LOADERS[config.source]((base / "../data/downloads").resolve())
-    path = base / config.source
+def read_table(path: Path) -> pd.DataFrame:
+    """Read a results table. Row order is preserved, because it can stand in for an ID."""
     if path.suffix.lower() == ".csv":
         return pd.read_csv(path)
     if path.suffix.lower() in {".parquet", ".pq"}:
         return pd.read_parquet(path)
-    raise ValueError(f"source must be a CSV/Parquet path or one of {sorted(LOADERS)}")
+    raise ValueError(f"source must be a CSV/Parquet path or one of {sorted(LOADERS)}: {path}")
+
+
+def load_source(config: Config, base: Path) -> pd.DataFrame:
+    """`base` is the config file's directory; downloads are cached in ../data/downloads."""
+    if config.source in LOADERS:
+        return LOADERS[config.source]((base / "../data/downloads").resolve())
+    return read_table(base / config.source)
+
+
+def row_ids(frame: pd.DataFrame) -> pd.Series:
+    """Zero-padded source row positions, for a table that carries no ID column."""
+    width = len(str(max(len(frame) - 1, 0)))
+    return pd.Series([f"row{i:0{width}d}" for i in range(len(frame))], index=frame.index)
 
 
 def preprocess(frame: pd.DataFrame, config: Config) -> pd.DataFrame:
     """Keep only _id, _label, _group and the allowlisted numeric signals. Nothing is fitted."""
-    needed = {config.id_column, config.label_column, *config.signals}
-    if config.group_column:
-        needed.add(config.group_column)
+    needed = {config.label_column, *config.signals}
+    for optional in (config.id_column, config.group_column):
+        if optional:
+            needed.add(optional)
     if missing := needed - set(frame.columns):
         raise ValueError(f"missing columns: {sorted(missing)}")
-    ids = frame[config.id_column]
-    if ids.isna().any() or ids.astype(str).duplicated().any():
-        raise ValueError("candidate IDs must be non-null and unique")
+    if config.id_column:
+        ids = frame[config.id_column]
+        if ids.isna().any() or ids.astype(str).duplicated().any():
+            raise ValueError("candidate IDs must be non-null and unique")
+    else:
+        ids = row_ids(frame)  # no ID column declared: the source row position is the ID
     labels = frame[config.label_column]
     if labels.isna().any():
         raise ValueError("labels cannot be missing")

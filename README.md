@@ -1,127 +1,240 @@
 # autoresearch-filters
 
-A small, CPU-only harness for discovering **interpretable, training-free
-screening rules**. A coding agent (Claude, Codex, ...) proposes one small JSON
-formula at a time, a fixed evaluator scores it, and every step lands in a
-journal you can inspect later. The output is a readable rule, never a fitted model.
+Let a coding agent (Claude, Codex, ...) search for a simple scoring formula
+that ranks good candidates above bad ones, and keep an honest log of
+everything it tried.
 
-## The loop
+The result is a short, readable formula in a JSON file. It is never a trained model.
 
-1. **Prepare (once).** The data is cut into three piles: *discovery* (look at it
-   freely), *verification* (used once) and the *final holdout* (used once). The
-   baseline rule is scored on discovery; that is the number to beat.
-2. **Try an idea.** Write a new JSON rule with a sentence saying why it should
-   help, and run `filters eval`. The result is appended to the journal.
-3. **Repeat** a few times, using what was learned to choose the next idea.
-4. **Verify (one shot).** Name 1-3 finalists. The best eligible one on discovery
-   is tested once on the verification pile. If it does not beat the baseline
-   there, the baseline is kept. Either way the campaign is now frozen.
-5. **Final (one shot).** The frozen rule is scored on the locked holdout.
+## Your own data in three commands
 
-The agent follows [AGENTS.md](AGENTS.md). Nothing is pushed anywhere.
+One row per candidate: as many computed columns as you like, plus **one
+experimental outcome column with two values**. No ID column and no group column
+are needed.
 
-## Quickstart
-
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/). The public
-IgDesign example downloads seven small CSVs with pinned checksums.
+```csv
+docking_energy,predicted_affinity,shape_complementarity,measured_binding
+-37.39,6.038,0.691,0
+-44.12,7.742,0.637,1
+```
 
 ```sh
 uv sync --frozen --dev
-export FILTERS_CAMPAIGN=quickstart          # or pass -c quickstart to every command
+
+# 1. read the table; write a dataset config and a baseline rule
+uv run filters init --data data/example_screen.csv
+
+# 2. split the data and score the baseline
+uv run filters prepare --config configs/example_screen.json \
+    --baseline rules/example_screen-baseline.json -c run1
+
+# 3. try an idea
+uv run filters eval rules/example_screen-drop-weak.json -c run1
+```
+
+That runs on `data/example_screen.csv`, a synthetic 240-row table in exactly the
+shape above. Step 3 is a real first idea: it drops the one signal whose declared
+direction the discovery rows contradict, and earns a `better` verdict.
+
+With your own table, swap in its path. `init` prints everything it decided, and
+two of those decisions are yours to check:
+
+- **Direction.** It guesses from the column name (`*_energy`, `*_rmsd` and the
+  like mean smaller is better) and prints every guess. A direction is a claim
+  about the signal, never something to fit. Correct one with
+  `--lower "docking_energy,rmsd_to_model"` or `--higher "confidence"`.
+- **What is a signal.** Columns that look measured rather than computed
+  (`affinity`, `assay`, `measured_*`) are skipped, and the reason is printed. A
+  measured outcome used as a signal would leak the answer into the rule.
+
+`configs/NAME.json` is a plain file you own; edit it if a guess is wrong. Other
+flags: `--label COLUMN` for the outcome, `--group COLUMN` for a target or batch
+column (switches to leave-one-group-out), `--signals "a,b,c"` to pick columns
+yourself, `--baseline-signal COLUMN` to make one signal the number to beat
+instead of the mean of all of them.
+
+## Launch a search
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), open
+Claude Code or Codex in this folder (`claude` or `codex`), and paste:
+
+```
+Read AGENTS.md and follow it exactly. Run a rule-search campaign on the IgDesign example.
+
+Setup:
+- Campaign name: search-1 (pass -c search-1 to every command).
+- Prepare with configs/igdesign.json and rules/baseline.json.
+
+Search:
+- First analyse campaigns/search-1/data/discovery.csv and record what you find with `filters note`.
+- Then try up to 6 ideas, one at a time. Each idea is a new file in rules/ with a unique name,
+  a hypothesis written before you evaluate it, and a parent.
+- After each eval, add a note saying what you learned and what you will try next, then commit
+  the rule and the journal together.
+- Do not sweep thresholds or weights. Do not open anything under data/locked/.
+
+Stop:
+- Stop when you have used 6 ideas or when nothing beats the baseline beyond noise.
+- Do NOT run `filters verify` or `filters final`. Run `filters log --html -c search-1`,
+  show me the table, tell me which finalists (if any) you would verify and why, and wait.
+```
+
+Watch the progress at any time:
+
+```sh
+uv run filters log --html -c search-1
+open campaigns/search-1/journal.html
+```
+
+When you are happy with the finalists, tell the agent: "verify X and Y, then
+run final". Those two steps work only once per campaign.
+
+Change the campaign name for each new search. For your own data, run `filters
+init` first and point the prompt at the config and baseline rule it wrote (see
+[docs/adding-datasets.md](docs/adding-datasets.md)).
+
+## How it works
+
+Your data is split into three piles:
+
+| Pile | Who can look | Used for |
+| --- | --- | --- |
+| **Discovery** | The agent, freely | Trying ideas |
+| **Verification** | Nobody, until the end | One check that the best idea is real |
+| **Holdout** | Nobody, until the very end | The final, honest score |
+
+Then the agent works in a loop:
+
+1. **Start** from a baseline formula. Its score on discovery is the number to beat.
+2. **Try an idea**: write a new formula with one sentence on why it should help, and score it.
+3. **Repeat** a few times.
+4. **Verify once**: pick up to three finalists. The best one is tested on the
+   verification pile. If it does not beat the baseline there, the baseline wins.
+5. **Final, once**: the winner is scored on the holdout. The campaign is over.
+
+Steps 4 and 5 work only one time each. That is the point: a formula that only
+looked good by luck on discovery gets caught.
+
+## Run the antibody example end to end
+
+The example above stops before the one-use steps. This one plays a whole
+campaign, including both of them, on a small public antibody dataset
+(downloaded on first run):
+
+```sh
+uv sync --frozen --dev
+export FILTERS_CAMPAIGN=quickstart
 
 uv run filters prepare --config configs/igdesign.json --baseline rules/baseline.json
 uv run filters eval rules/additive.json
 uv run filters eval rules/gated.json
-uv run filters note "Both ideas break a guard; verifying them anyway as the pre-stated finalists."
-uv run filters log --html                   # table in the terminal + campaigns/quickstart/journal.html
+uv run filters log --html
 
-uv run filters verify rules/additive.json rules/gated.json   # one use
-uv run filters final                                         # one use
+uv run filters verify rules/additive.json rules/gated.json
+uv run filters final
 ```
 
-This replays the shipped demonstration; its ideas and outcomes are already
-public, so it is not a fresh study. For a network-free run use
-`--config configs/synthetic.json --baseline rules/synthetic.json`.
+It replays two ideas that are already known to fail, so you can watch a search
+end honestly: the baseline is kept and scored on the holdout.
 
-## The journal
+## Commands
 
-Everything a campaign did is in `campaigns/NAME/journal.jsonl`: one JSON line per
-event, appended by the commands themselves. `filters log` prints it:
-
-```
-#  kind     data          rule                      parent      roc_auc        Δ  ±noise  pr_auc  precision@5  precision@10  precision@20  verdict
-0  prepare  igdesign: discovery 361, verification 361, holdout 125 rows
-1  eval     discovery     abb2-hcdr3                –            0.6222        –       –  0.4034       0.4000        0.3833        0.3500  · baseline
-2  note     Replay of the original demonstration ...
-3  eval     discovery     abb2-plus-weak-esmfold    abb2-hcdr3   0.6157  -0.0065  0.0300  0.3929       0.3667        0.3833        0.3667  ⚠ guard-broken
-4  eval     discovery     abb2-with-regime-esmfold  abb2-hcdr3   0.6300  +0.0077  0.0107  0.4198       0.4000        0.3500        0.3417  ⚠ guard-broken
-5  note     Both ideas break a guard on discovery ...
-6  verify   verification  abb2-hcdr3                –            0.6003        –       –  0.4048       0.3333        0.3167        0.3417  ✕ baseline-kept
-7  final    holdout       abb2-hcdr3                –            0.6797        –       –  0.4150       0.6000        0.6000        0.5000  ■ final
-```
-
-That is the committed [demo journal](campaigns/demo/journal.jsonl), computed by
-this code on the pinned public release. Both ideas were rejected and the
-baseline was kept: a small demonstration of the mechanics, not a benchmark result.
-
-- **Each row stands alone.** It holds the rule's name, parent, hypothesis,
-  readable formula, full JSON, metrics, Δ against the baseline on the same data,
-  per-fold values of the primary metric, the verdict, and the git commit that
-  was checked out when it ran.
-- **`parent`** links an idea to the rule it came from, so the journal is a tree.
-- **Verdicts** are computed, not hand-written: `better`, `within-noise`, `worse`
-  (primary-metric change against twice the `noise`), or `guard-broken` (ROC-AUC,
-  PR-AUC or a precision@K fell more than `guard_tolerance` below the baseline).
-  Errors such as an unknown signal are logged as `error`.
-- **`noise`** is the standard error of the per-fold difference from the
-  baseline. With a handful of folds it is a rough yardstick, not a significance test.
-- **`filters log --html`** writes one self-contained page: headline tiles, the
-  primary metric of every idea in the order tried, the lineage tree, and the
-  full journal with expandable details. It is regenerated on demand and git-ignored.
-
-Commit `journal.jsonl` together with each new rule. The campaign's `data/`
-directory is git-ignored.
-
-## Rule language
-
-`n(signal)` clips a signal to its configured range, scales it to [0, 1] and
-orients it so that higher is better.
-
-| Kind | Formula |
+| Command | What it does |
 | --- | --- |
-| `additive` | `sum(w * n(signal)) / sum(w)`, weights ≥ 0 |
-| `product` | `product(n(signal) ** exponent)`, exponents > 0 |
-| `gated` | an additive or product base, plus `weight * (n(signal) - center)` terms that are active only where a raw signal passes a threshold |
+| `filters init --data T` | Reads your table; writes a config and a baseline rule |
+| `filters prepare` | Splits the data and scores the baseline. Once per campaign |
+| `filters eval RULE` | Scores one idea on discovery |
+| `filters note "TEXT"` | Writes a comment into the log |
+| `filters log` | Shows the log. Add `--html` for a page with a chart |
+| `filters verify RULE...` | Tests the best of 1-3 finalists on verification. **One use** |
+| `filters final` | Scores the winner on the holdout. **One use** |
 
-See [rules/gated.json](rules/gated.json) for all of it in one file. A gate's
-weight may be negative, and a `center` of 0.5 lets it both reward and penalize.
-Rules cannot reference labels or any column outside the config's signal list,
-and cannot load code or fit anything.
+Each campaign lives in `campaigns/NAME`. Choose it with `-c NAME` or
+`FILTERS_CAMPAIGN`. That directory is git-ignored: it holds your split data and
+your journal, and it stays on the machine that ran the search.
 
-## How a rule gets accepted
+## The log
 
-- **Discovery** scores are cross-validated: leave-one-group-out, or repeated
-  stratified K-fold. Nothing is fitted, so folds only define how scores are averaged.
-- **`verify`** considers only finalists that improve the primary metric on
-  discovery without breaking a guard, takes the best, and accepts it only if it
-  also improves the primary metric on the reserved rows with all guards intact.
-  The row records the discovery gain, the transfer gain, their gap, and how many
-  ideas had been evaluated before.
-- **One use** is enforced by marker files written before the reserved data is
-  read. This prevents accidents; it is not tamper-proof against someone who
-  deletes files on purpose.
+Every command adds a line to `campaigns/NAME/journal.jsonl`. Nothing is ever
+removed, so failed ideas stay visible. `filters log` shows it as a table
+(shortened here):
 
-To use your own data see [docs/adding-datasets.md](docs/adding-datasets.md);
-for the example's provenance and licensing see [data/README.md](data/README.md).
+```
+#  kind     data          rule                      roc_auc        Δ  ±noise  verdict
+1  eval     discovery     abb2-hcdr3                 0.6222        –       –  · baseline
+3  eval     discovery     abb2-plus-weak-esmfold     0.6157  -0.0065  0.0300  ⚠ guard-broken
+4  eval     discovery     abb2-with-regime-esmfold   0.6300  +0.0077  0.0107  ⚠ guard-broken
+6  verify   verification  abb2-hcdr3                 0.6003        –       –  ✕ baseline-kept
+7  final    holdout       abb2-hcdr3                 0.6797        –       –  ■ final
+```
 
-## Development
+This is a real journal, kept in the repo as
+[docs/example-journal.jsonl](docs/example-journal.jsonl): two ideas, both
+rejected, baseline kept.
+
+How to read it:
+
+- **Δ** is the change against the baseline on the same pile.
+- **±noise** is roughly how much Δ wobbles between folds. A Δ smaller than about
+  twice the noise means little. With few folds this is a rough guide only.
+- **verdict** is computed for you:
+
+| Verdict | Meaning |
+| --- | --- |
+| `better` / `worse` | The main score moved by more than the noise |
+| `within-noise` | No clear change |
+| `guard-broken` | Another score (PR-AUC or precision@K) dropped too far. The idea cannot win |
+| `error` | The rule was invalid, for example an unknown signal |
+
+`filters log --html` writes `campaigns/NAME/journal.html` with a chart of every
+idea in the order tried, a tree showing which idea came from which, and the
+details of each one. To read the example above that way:
 
 ```sh
-uv run ruff check . && uv run ruff format --check . && uv run pytest
+mkdir -p campaigns/example && cp docs/example-journal.jsonl campaigns/example/journal.jsonl
+uv run filters log --html -c example
 ```
 
-Dependencies are NumPy, pandas, scikit-learn, Pydantic and Typer. Code is
-[MIT licensed](LICENSE). The repository's first version had per-run record files,
-hash seals and a wider rule language; its original demonstration records are in
-git history (`results/demo/` at commit `93e9ecb`) and report the same numbers
-as the demo journal above.
+## Writing a rule
+
+A rule is a JSON file in `rules/`:
+
+```json
+{
+  "name": "abb2-plus-weak-esmfold",
+  "hypothesis": "A second structure model may add information.",
+  "parent": "abb2-hcdr3",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {"signal": "HCDR3 scRMSD (ABB2)", "weight": 1},
+      {"signal": "HCDR3 scRMSD (ESMFold)", "weight": 0.25}
+    ]
+  }
+}
+```
+
+`parent` is the rule this idea was built from. There are three kinds of formula.
+Every signal is first rescaled to 0-1 so that higher always means better.
+
+| Kind | What it computes |
+| --- | --- |
+| `additive` | A weighted average of signals |
+| `product` | Signals multiplied together, so all must be good |
+| `gated` | A base formula, plus a correction that only applies when a signal is above or below a threshold. See [rules/gated.json](rules/gated.json) |
+
+A rule can only use the signals listed in the dataset config. It cannot see the
+labels and cannot run code.
+
+## More
+
+- [AGENTS.md](AGENTS.md): the rules the agent follows.
+- [docs/adding-datasets.md](docs/adding-datasets.md): every config field, and
+  what to fix by hand when a guess is wrong.
+- [docs/example-journal.jsonl](docs/example-journal.jsonl): a finished campaign,
+  as `filters log` reads it.
+- [data/README.md](data/README.md): where the example data comes from, and its license.
+- The one-use limits are enforced by marker files. They prevent accidents; they
+  do not stop someone who deletes files on purpose.
+
+Development: `uv run ruff check . && uv run pytest`. Code is [MIT licensed](LICENSE).

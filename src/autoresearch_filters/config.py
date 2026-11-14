@@ -62,7 +62,7 @@ class Protocol(StrictModel):
 class Config(StrictModel):
     name: str = Field(pattern=r"^[a-zA-Z0-9_-]+$")
     source: str  # CSV/Parquet path relative to the config file, or a built-in loader name
-    id_column: str
+    id_column: str | None = None  # omitted: the source row position identifies the candidate
     label_column: str
     success_value: str | int | bool
     group_column: str | None = None
@@ -72,7 +72,8 @@ class Config(StrictModel):
 
     @model_validator(mode="after")
     def check(self) -> Self:
-        columns = [self.id_column, self.label_column]
+        columns = [self.label_column]
+        columns += [self.id_column] if self.id_column else []
         columns += [self.group_column] if self.group_column else []
         if len(set(columns)) != len(columns):
             raise ValueError("ID, label and group columns must be distinct")

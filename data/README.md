@@ -1,8 +1,15 @@
 # Data provenance and licensing
 
-Only `synthetic.csv` is vendored. It is an intentionally constructed, deterministic
-192-row test fixture authored for this repository and covered by its MIT license.
-It is not experimental evidence.
+Two files are vendored, both synthetic and both covered by this repository's MIT
+license. Neither is experimental evidence.
+
+- `synthetic.csv`: a deterministic 192-row test fixture.
+- `example_screen.csv`: a deterministic 240-row table in the shape users arrive
+  with, computed columns plus one experimental outcome and no ID or group column.
+  Regenerate it with `uv run python scripts/make_example_screen.py`; the latent
+  quality, the per-column signal strength and the outcome are drawn from a fixed
+  seed, so `docking_energy` is informative and `strain_energy` carries nothing by
+  construction.
 
 ## IgDesign (download only)
 
@@ -48,6 +55,7 @@ uv run filters prepare --config configs/igdesign.json --baseline rules/baseline.
 ```
 
 Or fetch and checksum just the upstream files with
-`uv run python scripts/download_igdesign.py`. Do not commit `data/downloads/`
-or `campaigns/*/data/` (both are git-ignored). The committed demonstration
-journal contains aggregate metrics, not candidate features or experimental labels.
+`uv run python scripts/download_igdesign.py`. `data/downloads/` and `campaigns/`
+are both git-ignored, so neither the upstream CSVs nor your split data and journals
+are committed. The one journal kept in the repo, `docs/example-journal.jsonl`,
+contains aggregate metrics, not candidate features or experimental labels.

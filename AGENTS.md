@@ -13,6 +13,10 @@ uv sync --frozen --dev
 uv run filters prepare --config configs/igdesign.json --baseline rules/baseline.json -c NAME
 ```
 
+For a dataset that has no config yet, write one first with
+`uv run filters init --data path/to/table.csv`, check every direction and skipped
+column it reports, and say in a note what you changed and why.
+
 Then repeat, one small idea at a time:
 
 1. Write a new file in `rules/` (never edit an evaluated one). Give it a unique
@@ -22,8 +26,12 @@ Then repeat, one small idea at a time:
    `campaigns/NAME/journal.jsonl` automatically, including failures and errors.
 3. `uv run filters note "..." -c NAME` to record what you looked at in the
    discovery data, why the next idea follows, or why you are stopping.
-4. Commit the rule and the journal together:
-   `git add rules/my-idea.json campaigns/NAME/journal.jsonl && git commit -m "experiment: ..."`
+4. Commit the rule, with the outcome in the message:
+   `git add rules/my-idea.json && git commit -m "experiment: ..."`
+   `campaigns/` is git-ignored, so the journal stays on this machine: it is the
+   record of the search, not a build artifact. Keep the campaign directory, and
+   share `filters log --html` output rather than rewriting history. Each journal
+   row already stores the commit it was produced at.
 
 `uv run filters log -c NAME` shows the whole search; `--html` also writes a page
 with the progress chart and the lineage of ideas.
