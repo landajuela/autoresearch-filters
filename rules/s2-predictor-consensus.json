@@ -1,0 +1,12 @@
+{
+  "name": "s2-weak-abb3-consensus",
+  "parent": "abb2-hcdr3",
+  "hypothesis": "Cross-predictor agreement on the same loop. ABB3 HCDR3 scRMSD is the most nearly independent partner the dataset offers among signals with above-chance within-system skill: spearman 0.138 against the baseline after within-system ranking, versus 0.863 for Fv, with macro LOGO AUC 0.516. Two separately trained antibody-specific structure predictors agreeing that a designed loop is self-consistent should be harder to satisfy by a single predictor artefact than one predictor agreeing with itself, so the agreement term should add information that idea 1 could not, exactly because it is not redundant. Its within-system margin above chance is 0.016 against the baseline margin of 0.122, so it gets the pre-stated weight 0.25 rather than equal credit; the weight was not swept and no neighbourhood was examined. Counter-hypothesis, which the measurement will discriminate: ABB3 is near chance within systems because its errors are correlated with real design quality in the wrong direction, in which case even a quarter weight should cost a little ROC-AUC. Known in advance from the mechanism check in the journal: the same two signals at equal weight give macro AUC 0.5894, about -0.033 against the baseline, so a quarter weight is expected to land near -0.008, within or just beyond the noise yardstick and in the losing direction.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      { "signal": "HCDR3 scRMSD (ABB2)", "weight": 1 },
+      { "signal": "HCDR3 scRMSD (ABB3)", "weight": 0.25 }
+    ]
+  }
+}
