@@ -1,0 +1,13 @@
+{
+  "name": "s3-three-predictor-loop-ensemble",
+  "parent": "abb2-hcdr3",
+  "hypothesis": "The strongest form of the noise-averaging argument, stated so it can fail cleanly. All three HCDR3 scRMSD signals measure one latent quantity, whether the designed loop folds back to its intended conformation, through three separately trained predictors, and their within-system rank correlations are low (ABB2 to ABB3 0.138, ABB2 to ESMFold -0.018, ABB3 to ESMFold 0.166). The classical ensemble claim is that the unweighted mean of several weakly correlated estimates of one quantity cancels predictor-specific error and so ranks better than the best single member, even when individual members are weak. Equal weights are the canonical unweighted ensemble and involve no tuning. Prediction, stated before evaluating: this fails, and fails by roughly the sum of the dilution each weak member contributes. Idea 2 measured -0.0194 macro ROC-AUC for a quarter weight on a 0.516-AUC partner, so a third weight each on a 0.516 and a 0.486 partner should cost on the order of -0.05, far outside the noise yardstick and far outside the 0.01 guard tolerance. If the ensemble claim holds here instead, macro ROC-AUC rises above 0.622 and the dilution reading of ideas 1 and 2 is wrong; if the prediction holds, then no partner among these signals carries information the baseline lacks, and the honest end of this search is the baseline rather than a fourth variant of averaging.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      { "signal": "HCDR3 scRMSD (ABB2)", "weight": 1 },
+      { "signal": "HCDR3 scRMSD (ABB3)", "weight": 1 },
+      { "signal": "HCDR3 scRMSD (ESMFold)", "weight": 1 }
+    ]
+  }
+}
