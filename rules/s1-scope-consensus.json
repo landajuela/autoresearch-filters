@@ -1,0 +1,12 @@
+{
+  "name": "s1-scope-mean-abb2",
+  "parent": "abb2-hcdr3",
+  "hypothesis": "Cross-scope noise averaging within one predictor. HCDR3 and Fv scRMSD from ABB2 are two readings of the same latent quantity, how self-consistently the design folds, taken at different structural scopes; on discovery they are comparably informative within systems (macro LOGO AUC 0.622 for the loop, 0.609 for the framework) and correlated 0.863 after within-system ranking. If part of each reading is per-candidate prediction noise rather than real design quality, averaging two correlated readings of the same quantity should cancel some of that noise and rank slightly better than either alone, without introducing a new mechanism or a new failure mode. Equal weights follow from the comparable within-system AUCs and were not swept; note that equal weights still give the framework term about a third of the influence, because Fv occupies 0.14 of the declared 0..10 range against 0.44 for the loop. Expected gain is small, at most a few thousandths of macro ROC-AUC, since the two readings are 0.86 correlated and so share most of their noise; a drop in PR-AUC or any precision@K would mean the framework reading is diluting rather than denoising.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      { "signal": "HCDR3 scRMSD (ABB2)", "weight": 1 },
+      { "signal": "Fv scRMSD (ABB2)", "weight": 1 }
+    ]
+  }
+}
