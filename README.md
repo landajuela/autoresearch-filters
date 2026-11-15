@@ -3,6 +3,15 @@
 Find a short scoring formula that puts the good candidates first, and keep an
 honest record of everything that was tried.
 
+**It is built to be driven by [Codex](https://github.com/openai/codex).** Open
+the agent in this folder and it reads [AGENTS.md](AGENTS.md) and runs the search
+for you: one idea at a time, a mechanistic reason written before each score,
+every attempt kept in the log, and a stop before the two one-use checks so you
+decide what gets verified. Jump to
+[Hand the search to Codex](#hand-the-search-to-codex) for the prompt. The
+commands below are the ones it runs, so doing a round by hand first is the
+quickest way to see what it will do.
+
 **You bring a table.** One row per candidate, any number of computed columns,
 one experimental outcome with two values. No IDs, no setup, no training data.
 
@@ -103,9 +112,10 @@ That writes `rules/docking-only.json`, with the baseline as its parent. Add
 good instead of averaging them. Everything is a plain file; see
 [writing a rule by hand](#writing-a-rule-by-hand) for the full grammar.
 
-## Hand the search to an agent
+## Hand the search to Codex
 
-Open Claude Code or Codex in this folder (`claude` or `codex`) and paste:
+This is what the repository is for. Run `codex` in this folder (or `claude` for
+Claude Code — both read `AGENTS.md`) and paste:
 
 ```
 Read AGENTS.md and follow it exactly. Run a rule-search campaign on the IgDesign example.
