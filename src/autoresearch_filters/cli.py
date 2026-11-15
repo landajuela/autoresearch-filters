@@ -33,6 +33,13 @@ def _columns(value: str) -> list[str]:
     return [part.strip() for part in value.split(",") if part.strip()]
 
 
+def _resolve(value: Path, folder: str) -> Path:
+    """`example` means `configs/example.json`; a path with a slash or suffix is left alone."""
+    if value.suffix or len(value.parts) > 1:
+        return value
+    return Path(folder) / f"{value}.json"
+
+
 @app.command()
 def init(
     data: Annotated[Path, typer.Option(help="CSV/Parquet table: computed columns + one outcome")],
@@ -110,12 +117,19 @@ def init(
 
 @app.command()
 def prepare(
-    config: Annotated[Path, typer.Option(help="Dataset config JSON")],
-    baseline: Annotated[Path, typer.Option(help="Rule every idea is compared against")],
+    config: Annotated[Path, typer.Option(help="configs/NAME.json, or just NAME")],
+    baseline: Annotated[
+        Path | None, typer.Option(help="Rule to beat; the one `init` wrote by default")
+    ] = None,
     campaign: Campaign = "main",
 ):
     """Cut the data into discovery / verification / holdout and score the baseline."""
-    rows = run(lambda c: loop.prepare(config, baseline, c), campaign)
+    config = _resolve(config, "configs")
+    if baseline is None:
+        baseline = Path("rules") / f"{config.stem}-baseline.json"
+        if not baseline.exists():
+            raise typer.BadParameter(f"pass --baseline: {baseline} does not exist")
+    rows = run(lambda c: loop.prepare(config, _resolve(baseline, "rules"), c), campaign)
     for name, auc in rows[0]["signal_auc"].items():
         flag = "  <-- below 0.5: check the declared direction" if auc < 0.5 else ""
         typer.echo(f"signal {name!r}: oriented discovery AUC {auc:.4f}{flag}")
@@ -125,7 +139,46 @@ def prepare(
 @app.command("eval")
 def evaluate(rule: Path, campaign: Campaign = "main"):
     """Score one rule on discovery CV and log it. Failures are logged too."""
-    show(campaign, run(loop.evaluate, campaign, rule))
+    show(campaign, run(loop.evaluate, campaign, _resolve(rule, "rules")))
+
+
+@app.command()
+def idea(
+    name: Annotated[str, typer.Argument(help="Short name; becomes rules/NAME.json")],
+    why: Annotated[str, typer.Option("--why", help="The hypothesis: what changes and why")],
+    signals: Annotated[str, typer.Option(help="Signals to combine; all of them by default")] = "",
+    weights: Annotated[str, typer.Option(help="One per signal, comma-separated; all 1")] = "",
+    parent: Annotated[str, typer.Option("--from", help="Rule it came from; the baseline")] = "",
+    product: Annotated[
+        bool, typer.Option("--product", help="Multiply instead of averaging")
+    ] = False,
+    campaign: Campaign = "main",
+    force: Annotated[bool, typer.Option("--force", help="Overwrite an existing rule file")] = False,
+):
+    """Write a rule file for one idea, hypothesis first, ready for `filters eval`."""
+    from .bootstrap import draft_rule
+    from .rules import pretty
+
+    try:
+        numbers = [float(part) for part in _columns(weights)]
+    except ValueError as exc:
+        raise typer.BadParameter(f"--weights must be numbers: {weights!r}") from exc
+    drafted = run(
+        lambda c: draft_rule(
+            c,
+            name,
+            why=why,
+            signals=_columns(signals),
+            weights=numbers,
+            parent=parent,
+            product=product,
+            force=force,
+        ),
+        campaign,
+    )
+    typer.echo(f"Wrote {drafted['path']}  (parent: {drafted['rule'].parent})")
+    typer.echo(pretty(drafted["rule"], drafted["config"]))
+    typer.echo(f"\nNext: uv run filters eval {drafted['path']} -c {campaign}")
 
 
 @app.command()
@@ -137,7 +190,7 @@ def note(text: str, campaign: Campaign = "main"):
 @app.command()
 def verify(rules: list[Path], campaign: Campaign = "main"):
     """ONE USE: pick among 1-3 finalists on discovery, test once on reserved rows, freeze."""
-    show(campaign, run(loop.verify, campaign, rules))
+    show(campaign, run(loop.verify, campaign, [_resolve(rule, "rules") for rule in rules]))
 
 
 @app.command()

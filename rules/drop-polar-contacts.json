@@ -1,5 +1,5 @@
 {
-  "name": "example-screen-without-polar-contacts",
+  "name": "drop-polar-contacts",
   "parent": "example_screen-baseline",
   "hypothesis": "An example first idea, and the shape every idea should have: one change, one reason, written before the evaluation. `init` keeps every numeric column, so the baseline averages six signals whether or not each one carries information. On discovery `prepare` reports polar_contacts at oriented AUC 0.441, below chance and so contradicting the direction declared for it, while every other signal is above 0.5. A term whose declared direction the discovery rows do not support contributes an inverted tilt to the mean, pulling genuinely good candidates down. Dropping that one term, and changing nothing else, should raise ROC-AUC slightly. Note what this is not: the direction is not flipped to chase the number, which rule 7 forbids, and no weight is tuned. If the gain is inside the noise yardstick, the honest reading is that one weak term among six barely matters.",
   "expression": {

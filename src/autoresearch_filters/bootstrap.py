@@ -1,4 +1,4 @@
-"""Turn a plain results table into a reviewable dataset config and a baseline rule.
+"""Authoring helpers: get a table, and then an idea, into the loop without writing JSON.
 
 Everything here is label-free except counting the two outcome classes: directions come
 from flags or the column name, ranges from the observed bounds. Nothing is chosen by
@@ -18,6 +18,7 @@ import pandas as pd
 
 from .config import load_config
 from .data import preprocess, read_table
+from .rules import load_rule
 
 # A measured outcome must never become a signal, so these names are skipped by default.
 OUTCOME_WORDS = (
@@ -241,6 +242,52 @@ def choose_top_k(rows: int, folds: int) -> list[int]:
     """K values that stay inside a validation fold: holdout 20%, then half for verification."""
     fold = max(int(rows * 0.8 / 2 / max(folds, 1)), 1)
     return [k for k in (5, 10, 20, 50) if k <= max(fold // 3, 1)] or [1]
+
+
+def draft_rule(
+    campaign: Path,
+    name: str,
+    *,
+    why: str,
+    signals: Sequence[str] = (),
+    weights: Sequence[float] = (),
+    parent: str = "",
+    product: bool = False,
+    root: Path = Path(),
+    force: bool = False,
+) -> dict:
+    """Write rules/NAME.json for one idea: chosen signals, a parent, and a hypothesis."""
+    data = campaign / "data"
+    if not (data / "config.json").exists():
+        raise ValueError(f"{campaign} is not a prepared campaign; run `filters prepare` first")
+    config = load_config(data / "config.json")
+    if not why.strip():
+        raise ValueError("--why is the hypothesis; say what changes and why it should help")
+    chosen = list(signals) or list(config.signals)
+    if unknown := [s for s in chosen if s not in config.signals]:
+        raise ValueError(f"unknown signals {unknown}; this dataset has {list(config.signals)}")
+    if len(set(chosen)) != len(chosen):
+        raise ValueError(f"a signal is listed twice: {chosen}")
+    numbers = list(weights) or [1.0] * len(chosen)
+    if len(numbers) != len(chosen):
+        raise ValueError(f"{len(numbers)} weights for {len(chosen)} signals")
+    key, field = ("factors", "exponent") if product else ("terms", "weight")
+    rule = {
+        "name": _slug(name),
+        "parent": parent or json.loads((data / "baseline.json").read_text())["name"],
+        "hypothesis": why.strip(),
+        "expression": {
+            "kind": "product" if product else "additive",
+            key: [{"signal": s, field: w} for s, w in zip(chosen, numbers, strict=True)],
+        },
+    }
+    path = root / "rules" / f"{rule['name']}.json"
+    _write(path, rule, force)
+    try:
+        return {"path": path, "rule": load_rule(path), "config": config}
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
 
 
 def _write(path: Path, value: dict, force: bool) -> None:

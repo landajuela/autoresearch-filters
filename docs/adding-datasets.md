@@ -11,6 +11,10 @@ column with exactly two values. `init` writes `configs/NAME.json` and
 `rules/NAME-baseline.json`, then prints every decision it made. It refuses to
 overwrite either file; pass `--name` or `--force`.
 
+Then `uv run filters prepare --config NAME -c run1` starts the campaign: a bare
+name means `configs/NAME.json`, and the baseline defaults to the rule `init`
+wrote beside it.
+
 | Flag | Use it when |
 | --- | --- |
 | `--label COLUMN` | The outcome column is not the last one and not obvious from its name |

@@ -21,7 +21,10 @@ Then repeat, one small idea at a time:
 
 1. Write a new file in `rules/` (never edit an evaluated one). Give it a unique
    `name`, a `hypothesis` stating the change and its expected mechanism, and a
-   `parent`: the name of the rule it was derived from.
+   `parent`: the name of the rule it was derived from. For an additive or
+   product combination,
+   `uv run filters idea NAME --why "..." --signals "a,b" -c NAME` writes the
+   file; gated rules and anything unusual are written by hand.
 2. `uv run filters eval rules/my-idea.json -c NAME`. The outcome is appended to
    `campaigns/NAME/journal.jsonl` automatically, including failures and errors.
 3. `uv run filters note "..." -c NAME` to record what you looked at in the

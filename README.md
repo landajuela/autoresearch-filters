@@ -1,16 +1,10 @@
 # autoresearch-filters
 
-Let a coding agent (Claude, Codex, ...) search for a simple scoring formula
-that ranks good candidates above bad ones, and keep an honest log of
-everything it tried.
+Find a short scoring formula that puts the good candidates first, and keep an
+honest record of everything that was tried.
 
-The result is a short, readable formula in a JSON file. It is never a trained model.
-
-## Your own data in three commands
-
-One row per candidate: as many computed columns as you like, plus **one
-experimental outcome column with two values**. No ID column and no group column
-are needed.
+**You bring a table.** One row per candidate, any number of computed columns,
+one experimental outcome with two values. No IDs, no setup, no training data.
 
 ```csv
 docking_energy,predicted_affinity,shape_complementarity,measured_binding
@@ -18,45 +12,100 @@ docking_energy,predicted_affinity,shape_complementarity,measured_binding
 -44.12,7.742,0.637,1
 ```
 
-```sh
-uv sync --frozen --dev
+**You get a formula you can read**, and a verdict it had to earn:
 
-# 1. read the table; write a dataset config and a baseline rule
-uv run filters init --data data/example_screen.csv
-
-# 2. split the data and score the baseline
-uv run filters prepare --config configs/example_screen.json \
-    --baseline rules/example_screen-baseline.json -c run1
-
-# 3. try an idea
-uv run filters eval rules/example_screen-drop-weak.json -c run1
+```
+#2 eval: drop-polar-contacts   roc_auc 0.8069  Δ +0.0361  (noise ±0.0090)   ▲ better
 ```
 
-That runs on `data/example_screen.csv`, a synthetic 240-row table in exactly the
-shape above. Step 3 is a real first idea: it drops the one signal whose declared
-direction the discovery rows contradict, and earns a `better` verdict.
+It is never a trained model. Every rule is a small JSON file you can read, argue
+with, and apply by hand — and every idea that was tried stays in the log,
+including the ones that failed.
 
-With your own table, swap in its path. `init` prints everything it decided, and
-two of those decisions are yours to check:
+## Try it now
 
-- **Direction.** It guesses from the column name (`*_energy`, `*_rmsd` and the
-  like mean smaller is better) and prints every guess. A direction is a claim
-  about the signal, never something to fit. Correct one with
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then run
+three commands on the example table shipped here (240 synthetic rows):
+
+```sh
+uv run filters init --data data/example_screen.csv        # 1. read the table
+uv run filters prepare --config example_screen -c run1    # 2. split it, score the baseline
+uv run filters eval drop-polar-contacts -c run1           # 3. try an idea
+```
+
+Step 1 writes two files and tells you what it decided:
+
+```
+data/example_screen.csv: 240 rows, 6 signals kept
+outcome 'measured_binding': success is 1, 84 of 240 usable rows
+  docking_energy: lower_is_better [guessed from the name: CHECK IT], range [-54, -19]
+  predicted_affinity: higher_is_better [default: CHECK IT], range [3.9, 8.4]
+  ...
+Wrote configs/example_screen.json and rules/example_screen-baseline.json
+```
+
+Step 2 splits the data, scores the baseline, and flags anything suspicious:
+
+```
+signal 'docking_energy': oriented discovery AUC 0.7908
+signal 'polar_contacts': oriented discovery AUC 0.4413  <-- below 0.5: check the declared direction
+#1 eval: example_screen-baseline  · baseline
+  roc_auc       0.7709
+```
+
+Step 3 tries one idea — drop the signal whose declared direction the data
+contradicts — and it earns a verdict:
+
+```
+#2 eval: drop-polar-contacts  ▲ better
+  roc_auc       0.8069  Δ +0.0361  (noise ±0.0090)
+```
+
+## Use your own table
+
+Same three commands, your file:
+
+```sh
+uv run filters init --data path/to/your_table.csv
+uv run filters prepare --config your_table -c run1
+```
+
+`init` prints every decision. Two of them are yours to check:
+
+- **Direction.** It guesses from the column name (`*_energy`, `*_rmsd` mean
+  smaller is better) and marks every guess `CHECK IT`. A direction is a claim
+  about the signal, never something to fit. Fix one with
   `--lower "docking_energy,rmsd_to_model"` or `--higher "confidence"`.
-- **What is a signal.** Columns that look measured rather than computed
-  (`affinity`, `assay`, `measured_*`) are skipped, and the reason is printed. A
-  measured outcome used as a signal would leak the answer into the rule.
+- **What counts as a signal.** Columns that look measured rather than computed
+  (`affinity`, `assay`, `measured_*`) are skipped and the reason is printed, so
+  an outcome cannot leak into a rule. `predicted_affinity` is kept.
 
-`configs/NAME.json` is a plain file you own; edit it if a guess is wrong. Other
-flags: `--label COLUMN` for the outcome, `--group COLUMN` for a target or batch
-column (switches to leave-one-group-out), `--signals "a,b,c"` to pick columns
-yourself, `--baseline-signal COLUMN` to make one signal the number to beat
-instead of the mean of all of them.
+`configs/NAME.json` is a plain file you own — edit anything `init` got wrong,
+then run `prepare`. Other flags: `--label`, `--group` (a target or batch column:
+switches to leave-one-group-out), `--signals "a,b,c"`, `--baseline-signal`.
+Full reference: [docs/adding-datasets.md](docs/adding-datasets.md).
 
-## Launch a search
+## Try your own idea
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), open
-Claude Code or Codex in this folder (`claude` or `codex`), and paste:
+An idea is one change with a reason, written **before** you score it:
+
+```sh
+uv run filters idea docking-only \
+    --signals "docking_energy,predicted_affinity" \
+    --why "The two strongest columns measure the same binding geometry; the rest may be noise." \
+    -c run1
+
+uv run filters eval docking-only -c run1
+```
+
+That writes `rules/docking-only.json`, with the baseline as its parent. Add
+`--weights "1,0.5"` to weight the signals, or `--product` to require both to be
+good instead of averaging them. Everything is a plain file; see
+[writing a rule by hand](#writing-a-rule-by-hand) for the full grammar.
+
+## Hand the search to an agent
+
+Open Claude Code or Codex in this folder (`claude` or `codex`) and paste:
 
 ```
 Read AGENTS.md and follow it exactly. Run a rule-search campaign on the IgDesign example.
@@ -79,83 +128,75 @@ Stop:
   show me the table, tell me which finalists (if any) you would verify and why, and wait.
 ```
 
-Watch the progress at any time:
+Swap the two paths in "Prepare with" for the ones `init` wrote to search your
+own data. Watch it work at any time:
 
 ```sh
-uv run filters log --html -c search-1
-open campaigns/search-1/journal.html
+uv run filters log --html -c search-1 && open campaigns/search-1/journal.html
 ```
 
-When you are happy with the finalists, tell the agent: "verify X and Y, then
-run final". Those two steps work only once per campaign.
+## What those commands actually did
 
-Change the campaign name for each new search. For your own data, run `filters
-init` first and point the prompt at the config and baseline rule it wrote (see
-[docs/adding-datasets.md](docs/adding-datasets.md)).
+Your rows are cut into three piles, and only the first one is open:
 
-## How it works
+```
+your table ──┬──► discovery      the search plays here, as often as it likes
+             ├──► verification   opened once, to check the best idea is real
+             └──► holdout        opened once, at the very end, for the honest number
+```
 
-Your data is split into three piles:
+Then the loop is just:
 
-| Pile | Who can look | Used for |
-| --- | --- | --- |
-| **Discovery** | The agent, freely | Trying ideas |
-| **Verification** | Nobody, until the end | One check that the best idea is real |
-| **Holdout** | Nobody, until the very end | The final, honest score |
-
-Then the agent works in a loop:
-
-1. **Start** from a baseline formula. Its score on discovery is the number to beat.
-2. **Try an idea**: write a new formula with one sentence on why it should help, and score it.
-3. **Repeat** a few times.
-4. **Verify once**: pick up to three finalists. The best one is tested on the
+1. **Baseline.** Its score on discovery is the number to beat.
+2. **One idea at a time.** A new formula, a reason written first, a score.
+3. **Repeat** a few times. Every attempt is logged, winners and losers alike.
+4. **Verify once.** Up to three finalists; the best is tested on the
    verification pile. If it does not beat the baseline there, the baseline wins.
-5. **Final, once**: the winner is scored on the holdout. The campaign is over.
+5. **Final once.** The winner is scored on the holdout. The campaign is over.
 
-Steps 4 and 5 work only one time each. That is the point: a formula that only
-looked good by luck on discovery gets caught.
+Steps 4 and 5 work exactly one time each. That is the point: a formula that
+only looked good by luck on discovery gets caught.
 
-## Run the antibody example end to end
-
-The example above stops before the one-use steps. This one plays a whole
-campaign, including both of them, on a small public antibody dataset
-(downloaded on first run):
+To watch all five steps on real data, including the two one-use steps, play the
+antibody example (a small public dataset, downloaded on first run):
 
 ```sh
-uv sync --frozen --dev
 export FILTERS_CAMPAIGN=quickstart
-
-uv run filters prepare --config configs/igdesign.json --baseline rules/baseline.json
-uv run filters eval rules/additive.json
-uv run filters eval rules/gated.json
+uv run filters prepare --config igdesign --baseline baseline
+uv run filters eval additive
+uv run filters eval gated
 uv run filters log --html
-
-uv run filters verify rules/additive.json rules/gated.json
+uv run filters verify additive gated
 uv run filters final
 ```
 
-It replays two ideas that are already known to fail, so you can watch a search
-end honestly: the baseline is kept and scored on the holdout.
+Both ideas there are known to fail, so you can see a search end honestly: the
+baseline is kept and scored on the holdout.
 
 ## Commands
 
 | Command | What it does |
 | --- | --- |
-| `filters init --data T` | Reads your table; writes a config and a baseline rule |
-| `filters prepare` | Splits the data and scores the baseline. Once per campaign |
+| `filters init --data TABLE` | Reads your table; writes a config and a baseline rule |
+| `filters prepare --config C` | Splits the data, scores the baseline. Once per campaign |
+| `filters idea NAME --why "..."` | Writes a rule file for one idea |
 | `filters eval RULE` | Scores one idea on discovery |
 | `filters note "TEXT"` | Writes a comment into the log |
 | `filters log` | Shows the log. Add `--html` for a page with a chart |
 | `filters verify RULE...` | Tests the best of 1-3 finalists on verification. **One use** |
 | `filters final` | Scores the winner on the holdout. **One use** |
 
-Each campaign lives in `campaigns/NAME`. Choose it with `-c NAME` or
-`FILTERS_CAMPAIGN`. That directory is git-ignored: it holds your split data and
-your journal, and it stays on the machine that ran the search.
+Anywhere a config or rule is expected, a bare name works: `--config example_screen`
+means `configs/example_screen.json`, and `eval docking-only` means
+`rules/docking-only.json`.
+
+Each campaign lives in `campaigns/NAME`, chosen with `-c NAME` or
+`FILTERS_CAMPAIGN` (default: `main`). That directory is git-ignored: it holds
+your split data and your journal, and stays on the machine that ran the search.
 
 ## The log
 
-Every command adds a line to `campaigns/NAME/journal.jsonl`. Nothing is ever
+Every command appends a line to `campaigns/NAME/journal.jsonl`. Nothing is ever
 removed, so failed ideas stay visible. `filters log` shows it as a table
 (shortened here):
 
@@ -168,13 +209,18 @@ removed, so failed ideas stay visible. `filters log` shows it as a table
 7  final    holdout       abb2-hcdr3                 0.6797        –       –  ■ final
 ```
 
-This is a real journal, kept in the repo as
+That is a real journal, kept here as
 [docs/example-journal.jsonl](docs/example-journal.jsonl): two ideas, both
-rejected, baseline kept.
+rejected, baseline kept. Read it as a page with:
 
-How to read it:
+```sh
+mkdir -p campaigns/example && cp docs/example-journal.jsonl campaigns/example/journal.jsonl
+uv run filters log --html -c example
+```
 
-- **Δ** is the change against the baseline on the same pile.
+How to read a row:
+
+- **Δ** is the change against the baseline on the same folds.
 - **±noise** is roughly how much Δ wobbles between folds. A Δ smaller than about
   twice the noise means little. With few folds this is a rough guide only.
 - **verdict** is computed for you:
@@ -186,24 +232,19 @@ How to read it:
 | `guard-broken` | Another score (PR-AUC or precision@K) dropped too far. The idea cannot win |
 | `error` | The rule was invalid, for example an unknown signal |
 
-`filters log --html` writes `campaigns/NAME/journal.html` with a chart of every
-idea in the order tried, a tree showing which idea came from which, and the
-details of each one. To read the example above that way:
+`filters log --html` also writes a page with a chart of every idea in the order
+tried, a tree of which idea came from which, and the details of each one.
 
-```sh
-mkdir -p campaigns/example && cp docs/example-journal.jsonl campaigns/example/journal.jsonl
-uv run filters log --html -c example
-```
+## Writing a rule by hand
 
-## Writing a rule
-
-A rule is a JSON file in `rules/`:
+`filters idea` covers the common cases; past that, a rule is just a JSON file in
+`rules/`:
 
 ```json
 {
   "name": "abb2-plus-weak-esmfold",
-  "hypothesis": "A second structure model may add information.",
   "parent": "abb2-hcdr3",
+  "hypothesis": "A second structure model may add information.",
   "expression": {
     "kind": "additive",
     "terms": [
@@ -214,26 +255,26 @@ A rule is a JSON file in `rules/`:
 }
 ```
 
-`parent` is the rule this idea was built from. There are three kinds of formula.
-Every signal is first rescaled to 0-1 so that higher always means better.
+`parent` is the rule this idea was built from; `hypothesis` is why it should
+work, written before you score it. Every signal is first rescaled to 0-1 so that
+higher always means better, using the range declared in the config.
 
 | Kind | What it computes |
 | --- | --- |
 | `additive` | A weighted average of signals |
 | `product` | Signals multiplied together, so all must be good |
-| `gated` | A base formula, plus a correction that only applies when a signal is above or below a threshold. See [rules/gated.json](rules/gated.json) |
+| `gated` | A base formula plus a correction that applies only when a signal is above or below a threshold. See [rules/gated.json](rules/gated.json) |
 
-A rule can only use the signals listed in the dataset config. It cannot see the
-labels and cannot run code.
+A rule can only use signals listed in the dataset config. It cannot see the
+labels, and it cannot run code.
 
 ## More
 
-- [AGENTS.md](AGENTS.md): the rules the agent follows.
+- [AGENTS.md](AGENTS.md): the rules an agent follows, and why.
 - [docs/adding-datasets.md](docs/adding-datasets.md): every config field, and
   what to fix by hand when a guess is wrong.
-- [docs/example-journal.jsonl](docs/example-journal.jsonl): a finished campaign,
-  as `filters log` reads it.
-- [data/README.md](data/README.md): where the example data comes from, and its license.
+- [data/README.md](data/README.md): where the example data comes from, and its
+  license.
 - The one-use limits are enforced by marker files. They prevent accidents; they
   do not stop someone who deletes files on purpose.
 

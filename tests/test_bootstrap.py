@@ -1,6 +1,5 @@
 import json
 
-import numpy as np
 import pandas as pd
 import pytest
 
@@ -9,34 +8,8 @@ from autoresearch_filters.campaign import evaluate, prepare
 from autoresearch_filters.data import row_ids
 
 
-def table(rows: int = 120) -> pd.DataFrame:
-    rng = np.random.default_rng(0)
-    quality = rng.normal(size=rows)
-    return pd.DataFrame(
-        {
-            # "affinity" is an outcome word, but "predicted" says the number is computed.
-            "predicted_affinity": 6 + quality,
-            "docking_energy": -30 - 3 * quality,
-            "affinity": 5 + quality,  # no computed word: must be treated as an outcome
-            "note": ["text"] * rows,
-            "batch": [7] * rows,
-            "measured_binding": (quality + rng.normal(size=rows) * 0.3 > 0).astype(int),
-        }
-    )
-
-
-@pytest.fixture
-def csv(tmp_path):
-    def write(frame: pd.DataFrame, name: str = "screen.csv"):
-        path = tmp_path / name
-        frame.to_csv(path, index=False)
-        return path
-
-    return write
-
-
-def test_init_infers_outcome_signals_and_directions(tmp_path, csv):
-    report = initialise(csv(table()), root=tmp_path)
+def test_init_infers_outcome_signals_and_directions(tmp_path, csv, screen_table):
+    report = initialise(csv(screen_table), root=tmp_path)
     config = json.loads((tmp_path / "configs/screen.json").read_text())
 
     assert config["label_column"] == "measured_binding"
@@ -55,9 +28,9 @@ def test_init_infers_outcome_signals_and_directions(tmp_path, csv):
     assert [t["weight"] for t in baseline["expression"]["terms"]] == [1, 1]
 
 
-def test_flags_override_inference(tmp_path, csv):
+def test_flags_override_inference(tmp_path, csv, screen_table):
     initialise(
-        csv(table()),
+        csv(screen_table),
         root=tmp_path,
         label="measured_binding",
         success="0",
@@ -74,8 +47,8 @@ def test_flags_override_inference(tmp_path, csv):
     assert [t["signal"] for t in baseline["expression"]["terms"]] == ["affinity"]
 
 
-def test_group_column_switches_to_leave_one_group_out(tmp_path, csv):
-    frame = table()
+def test_group_column_switches_to_leave_one_group_out(tmp_path, csv, screen_table):
+    frame = screen_table
     frame["target"] = ["t1", "t2", "t3", "t4"] * (len(frame) // 4)
     initialise(csv(frame), root=tmp_path, group="target")
     config = json.loads((tmp_path / "configs/screen.json").read_text())
@@ -85,26 +58,26 @@ def test_group_column_switches_to_leave_one_group_out(tmp_path, csv):
     assert "target" not in config["signals"]
 
 
-def test_bad_input_is_refused(tmp_path, csv):
+def test_bad_input_is_refused(tmp_path, csv, screen_table):
     with pytest.raises(ValueError, match="not one of"):
-        initialise(csv(table()), root=tmp_path, baseline_signal="nope")
+        initialise(csv(screen_table), root=tmp_path, baseline_signal="nope")
     with pytest.raises(ValueError, match="not signals"):
-        initialise(csv(table()), root=tmp_path, lower=["note"])
+        initialise(csv(screen_table), root=tmp_path, lower=["note"])
     with pytest.raises(ValueError, match="not in the table"):
-        initialise(csv(table()), root=tmp_path, signals=["ghost"])
+        initialise(csv(screen_table), root=tmp_path, signals=["ghost"])
     with pytest.raises(ValueError, match="no column named"):
-        initialise(csv(table()), root=tmp_path, label="ghost")
-    three = table().assign(measured_binding=[0, 1, 2] * 40)
+        initialise(csv(screen_table), root=tmp_path, label="ghost")
+    three = screen_table.assign(measured_binding=[0, 1, 2] * 40)
     with pytest.raises(ValueError, match="distinct values, not 2"):
         initialise(csv(three), root=tmp_path, label="measured_binding")
-    strings = table().assign(measured_binding=["left", "right"] * 60)
+    strings = screen_table.assign(measured_binding=["left", "right"] * 60)
     with pytest.raises(ValueError, match="which of"):
         initialise(csv(strings), root=tmp_path, label="measured_binding")
     assert not (tmp_path / "configs").exists()  # nothing written on any failure
 
 
-def test_existing_files_are_not_clobbered(tmp_path, csv):
-    path = csv(table())
+def test_existing_files_are_not_clobbered(tmp_path, csv, screen_table):
+    path = csv(screen_table)
     initialise(path, root=tmp_path)
     (tmp_path / "configs/screen.json").write_text("{}")
     with pytest.raises(ValueError, match="already exists"):
@@ -114,8 +87,8 @@ def test_existing_files_are_not_clobbered(tmp_path, csv):
     assert json.loads((tmp_path / "configs/screen.json").read_text())["name"] == "screen"
 
 
-def test_table_without_id_column_runs_the_whole_loop(tmp_path, csv):
-    report = initialise(csv(table()), root=tmp_path)
+def test_table_without_id_column_runs_the_whole_loop(tmp_path, csv, screen_table):
+    report = initialise(csv(screen_table), root=tmp_path)
     campaign = tmp_path / "campaign"
     rows = prepare(report["config_path"], report["baseline_path"], campaign)
     assert rows[1]["metrics"]["roc_auc"] > 0.5
