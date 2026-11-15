@@ -32,6 +32,11 @@ It is never a trained model. Every rule is a small JSON file you can read, argue
 with, and apply by hand — and every idea that was tried stays in the log,
 including the ones that failed.
 
+The method, and the antibody results it was built for, are described in
+[Autoresearch Discovery of Interpretable Filter Rules for Antibody Binder
+Classification](https://doi.org/10.64898/2026.05.05.723069) (bioRxiv, 2026) —
+please [cite it](#citation) if you use this.
+
 ## Try it now
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then run
@@ -278,6 +283,29 @@ higher always means better, using the range declared in the config.
 
 A rule can only use signals listed in the dataset config. It cannot see the
 labels, and it cannot run code.
+
+## Citation
+
+If this repository or the method is useful to you, cite the paper:
+
+> Landajuela, M. (2026). *Autoresearch Discovery of Interpretable Filter Rules
+> for Antibody Binder Classification.* bioRxiv.
+> [doi:10.64898/2026.05.05.723069](https://doi.org/10.64898/2026.05.05.723069)
+
+```bibtex
+@article{landajuela2026autoresearch,
+  title   = {Autoresearch Discovery of Interpretable Filter Rules for Antibody Binder Classification},
+  author  = {Landajuela, Mikel},
+  journal = {bioRxiv},
+  year    = {2026},
+  doi     = {10.64898/2026.05.05.723069},
+  url     = {https://www.biorxiv.org/content/10.64898/2026.05.05.723069v2}
+}
+```
+
+[CITATION.cff](CITATION.cff) carries the same reference in machine-readable
+form, so GitHub's "Cite this repository" button points at the paper rather than
+at the code.
 
 ## More
 

@@ -14,6 +14,10 @@ dependencies = [
   "pydantic>=2.10,<3", "typer>=0.15,<1",
 ]
 
+[project.urls]
+Paper = "https://doi.org/10.64898/2026.05.05.723069"
+Repository = "https://github.com/landajuela/autoresearch-filters"
+
 [project.scripts]
 filters = "autoresearch_filters.cli:app"
 

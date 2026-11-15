@@ -1,6 +1,29 @@
 cff-version: 1.2.0
-message: "Placeholder: fill in the actual authors, release version, repository URL, and DOI (if any) before citing a release."
+message: "If you use this software, please cite the paper below."
 title: "autoresearch-filters"
 type: software
 license: MIT
-# No paper, DOI, authorship list, repository URL, or benchmark claim is invented here.
+abstract: >-
+  Interpretable, training-free screening rules found by a journaled research
+  loop: an agent proposes rule variants, each is scored under a fixed protocol,
+  and every attempt is recorded.
+authors:
+  - family-names: Landajuela
+    given-names: Mikel
+    orcid: "https://orcid.org/0000-0002-4804-6513"
+    affiliation: "Lawrence Livermore National Laboratory"
+repository-code: "https://github.com/landajuela/autoresearch-filters"
+preferred-citation:
+  type: article
+  title: "Autoresearch Discovery of Interpretable Filter Rules for Antibody Binder Classification"
+  authors:
+    - family-names: Landajuela
+      given-names: Mikel
+      orcid: "https://orcid.org/0000-0002-4804-6513"
+      affiliation: "Lawrence Livermore National Laboratory"
+  journal: "bioRxiv"
+  year: 2026
+  month: 5
+  doi: "10.64898/2026.05.05.723069"
+  url: "https://www.biorxiv.org/content/10.64898/2026.05.05.723069v2"
+  notes: "Preprint, posted 2026-05-19 (v2). Not peer reviewed at the time of writing."
