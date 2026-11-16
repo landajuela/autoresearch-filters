@@ -1,0 +1,43 @@
+{
+  "name": "tree-igdesign-dual-loop-veto",
+  "parent": "abb2-hcdr3",
+  "hypothesis": "If both antibody-specialist models have HCDR3 scRMSD above 2 angstrom, tie their structurally inconsistent tail at zero; otherwise keep ABB2 ordering. Independent agreement on loop failure may be more reliable than globally averaging weak predictors. The single rounded 2 angstrom scale was chosen before evaluation, with no neighborhood search; its system dependence is a known risk.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "HCDR3 scRMSD (ABB2)",
+      "op": ">",
+      "value": 2
+    },
+    "then": {
+      "kind": "conditional",
+      "when": {
+        "signal": "HCDR3 scRMSD (ABB3)",
+        "op": ">",
+        "value": 2
+      },
+      "then": {
+        "kind": "constant",
+        "value": 0
+      },
+      "else": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "HCDR3 scRMSD (ABB2)",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "HCDR3 scRMSD (ABB2)",
+          "weight": 1
+        }
+      ]
+    }
+  }
+}
