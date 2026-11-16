@@ -1,0 +1,51 @@
+{
+  "name": "tree-public-cao-bennett-dual-pae-veto",
+  "parent": "public-cao-bennett-structure-consensus",
+  "hypothesis": "When both AF2 and RF2 interface PAE exceed 20 angstrom, tie their jointly unresolved interface regime at zero; otherwise retain the two-model mean. This coarse threshold separates highly uncertain relative placement from a usable interface and is fixed once from the signal scale. A joint veto may reduce noisy tail order without the top-ranking dilution of global structural recapitulation.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "pae_interaction",
+      "op": ">",
+      "value": 20
+    },
+    "then": {
+      "kind": "conditional",
+      "when": {
+        "signal": "rf2_pae_interaction",
+        "op": ">",
+        "value": 20
+      },
+      "then": {
+        "kind": "constant",
+        "value": 0
+      },
+      "else": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "pae_interaction",
+            "weight": 1.0
+          },
+          {
+            "signal": "rf2_pae_interaction",
+            "weight": 1.0
+          }
+        ]
+      }
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "pae_interaction",
+          "weight": 1.0
+        },
+        {
+          "signal": "rf2_pae_interaction",
+          "weight": 1.0
+        }
+      ]
+    }
+  }
+}
