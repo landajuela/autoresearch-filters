@@ -1,0 +1,22 @@
+{
+  "name": "public-linsky-energy-core-geometry",
+  "parent": "public-linsky-energy-core",
+  "hypothesis": "Energy plus core burial improved PR-AUC in all five discovery groups. Add local backbone compatibility through lower worst-fragment deviation, because a favorable packed core can still rely on strained local conformations. Use the equal mean of the three frozen normalized signals; no coefficient tuning. Discovery energy/worstfrag correlation is only 0.058.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "score_per_res",
+        "weight": 1.0
+      },
+      {
+        "signal": "buried_np_AFILMVWY_per_res",
+        "weight": 1.0
+      },
+      {
+        "signal": "worstfrag",
+        "weight": 1.0
+      }
+    ]
+  }
+}
