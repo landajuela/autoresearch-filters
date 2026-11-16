@@ -1,0 +1,59 @@
+{
+  "name": "tree-public-megascale-proteingym-sequence-evolution-veto",
+  "parent": "public-megascale-proteingym-sequence-evolution-structure",
+  "hypothesis": "Extend the sequence/evolution/structure mean with a consensus failure leaf: ESM2 below -15 AND GEMME below -10 yields zero. Joint language-model and evolutionary evidence of a damaging variant may justify deprioritizing it despite a favorable inverse-folding score. These are rounded poor-score regimes observed without labels, fixed identically for ProteinGym and its MegaScale subset; no sweep.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "ESM2_650M",
+      "op": "<",
+      "value": -15
+    },
+    "then": {
+      "kind": "conditional",
+      "when": {
+        "signal": "GEMME",
+        "op": "<",
+        "value": -10
+      },
+      "then": {
+        "kind": "constant",
+        "value": 0
+      },
+      "else": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "ESM2_650M",
+            "weight": 1.0
+          },
+          {
+            "signal": "GEMME",
+            "weight": 1.0
+          },
+          {
+            "signal": "ESM-IF1",
+            "weight": 1.0
+          }
+        ]
+      }
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "ESM2_650M",
+          "weight": 1.0
+        },
+        {
+          "signal": "GEMME",
+          "weight": 1.0
+        },
+        {
+          "signal": "ESM-IF1",
+          "weight": 1.0
+        }
+      ]
+    }
+  }
+}
