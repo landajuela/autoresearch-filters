@@ -1,0 +1,22 @@
+{
+  "name": "public-megascale-proteingym-sequence-evolution-structure",
+  "parent": "public-megascale-proteingym-sequence-evolution",
+  "hypothesis": "Sequence/evolution averaging improved PR-AUC on 49 of 63 discovery stability-assay proteins. Add ESM-IF1 inverse-folding likelihood because compatibility with the folded backbone is directly relevant to proteolysis-based stability. Its discovery correlation with ESM2 is only 0.079. Use an equal normalized three-term mean, retaining all frozen ranges; do not treat overlap with ProteinGym as independent evidence.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "ESM2_650M",
+        "weight": 1.0
+      },
+      {
+        "signal": "GEMME",
+        "weight": 1.0
+      },
+      {
+        "signal": "ESM-IF1",
+        "weight": 1.0
+      }
+    ]
+  }
+}
