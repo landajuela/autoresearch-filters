@@ -1,0 +1,18 @@
+{
+  "name": "public-cao-bennett-interface-recapitulation",
+  "parent": "public-cao-bennett-baseline",
+  "hypothesis": "AF2/RoseTTAFold2 consensus was within noise: most of its macro gain came from TrkA with five discovery positives, and IL7Ra lost PR-AUC. Test a distinct agreement criterion by averaging low AF2 interface error and low AF2/design complex RMSD. Confidence alone can support the wrong docking geometry; recapitulation of the designed complex may reject such cases. Equal normalized weights, no thresholds.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "pae_interaction",
+        "weight": 1.0
+      },
+      {
+        "signal": "af2_complex_rmsd",
+        "weight": 1.0
+      }
+    ]
+  }
+}
