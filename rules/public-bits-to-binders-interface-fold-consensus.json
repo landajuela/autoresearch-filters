@@ -1,0 +1,18 @@
+{
+  "name": "public-bits-to-binders-interface-fold-consensus",
+  "parent": "public-bits-to-binders-baseline",
+  "hypothesis": "Add binder folding confidence to Boltz interface confidence with equal normalized weights. Enrichment requires a sufficiently folded binder as well as a predicted interface. Discovery correlation is approximately zero and binder pLDDT oriented pooled AUC is 0.575; the baseline's weak pooled direction is retained, not reversed.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "boltz_A_BC_max_ipSAE",
+        "weight": 1.0
+      },
+      {
+        "signal": "boltz_plddt_binder_none",
+        "weight": 1.0
+      }
+    ]
+  }
+}
