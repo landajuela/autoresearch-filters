@@ -1,0 +1,68 @@
+{
+  "name": "tree-public-megascale-proteingym-sequence-consensus-rescue",
+  "parent": "public-megascale-proteingym-sequence-evolution-structure",
+  "hypothesis": "If both ESM2 and GEMME are at least -5, rank by their two-term mean; elsewhere retain the three-term mean including ESM-IF1. Strong agreement of sequence and evolutionary plausibility may avoid penalization from an imperfect single-structure representation, while inverse folding remains useful on disputed variants. A single rounded -5 boundary is shared across the overlapping datasets and is not fitted.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "ESM2_650M",
+      "op": ">=",
+      "value": -5
+    },
+    "then": {
+      "kind": "conditional",
+      "when": {
+        "signal": "GEMME",
+        "op": ">=",
+        "value": -5
+      },
+      "then": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "ESM2_650M",
+            "weight": 1
+          },
+          {
+            "signal": "GEMME",
+            "weight": 1
+          }
+        ]
+      },
+      "else": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "ESM2_650M",
+            "weight": 1.0
+          },
+          {
+            "signal": "GEMME",
+            "weight": 1.0
+          },
+          {
+            "signal": "ESM-IF1",
+            "weight": 1.0
+          }
+        ]
+      }
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "ESM2_650M",
+          "weight": 1.0
+        },
+        {
+          "signal": "GEMME",
+          "weight": 1.0
+        },
+        {
+          "signal": "ESM-IF1",
+          "weight": 1.0
+        }
+      ]
+    }
+  }
+}
