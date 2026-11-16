@@ -1,0 +1,37 @@
+{
+  "name": "tree-public-rocklin-geometry-conjunction",
+  "parent": "public-rocklin-energy-core",
+  "hypothesis": "When worst fragment deviation exceeds 1.5, replace the energy/core mean with their product; elsewhere retain the mean. Questionable backbone compatibility makes agreement of favorable energy AND core burial more important than compensation between them. Products of normalized [0,1] scores never exceed their mean, so this branch is a conservative demotion while retaining ranking within it. Reuse the same cutoff without tuning.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "worstfrag",
+      "op": ">",
+      "value": 1.5
+    },
+    "then": {
+      "kind": "product",
+      "factors": [
+        {
+          "signal": "score_per_res"
+        },
+        {
+          "signal": "buried_np_AFILMVWY_per_res"
+        }
+      ]
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "score_per_res",
+          "weight": 1.0
+        },
+        {
+          "signal": "buried_np_AFILMVWY_per_res",
+          "weight": 1.0
+        }
+      ]
+    }
+  }
+}
