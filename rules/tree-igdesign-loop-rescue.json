@@ -1,0 +1,52 @@
+{
+  "name": "tree-igdesign-loop-rescue",
+  "parent": "abb2-hcdr3",
+  "hypothesis": "Only when ABB2 loop scRMSD exceeds 2 angstrom but ESMFold is below 2 angstrom, average the two normalized loop scores; otherwise retain ABB2. This tests whether a second predictor can rescue a poorly reproduced loop without diluting every confidently reproduced loop. Same fixed 2 angstrom boundary; no tuning.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "HCDR3 scRMSD (ABB2)",
+      "op": ">",
+      "value": 2
+    },
+    "then": {
+      "kind": "conditional",
+      "when": {
+        "signal": "HCDR3 scRMSD (ESMFold)",
+        "op": "<",
+        "value": 2
+      },
+      "then": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "HCDR3 scRMSD (ABB2)",
+            "weight": 1
+          },
+          {
+            "signal": "HCDR3 scRMSD (ESMFold)",
+            "weight": 1
+          }
+        ]
+      },
+      "else": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "HCDR3 scRMSD (ABB2)",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "HCDR3 scRMSD (ABB2)",
+          "weight": 1
+        }
+      ]
+    }
+  }
+}
