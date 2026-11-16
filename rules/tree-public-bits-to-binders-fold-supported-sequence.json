@@ -1,0 +1,52 @@
+{
+  "name": "tree-public-bits-to-binders-fold-supported-sequence",
+  "parent": "tree-public-bits-to-binders-zero-interface-sequence",
+  "hypothesis": "Restrict the sequence fallback at zero interface ipSAE to candidates with binder pLDDT at least 0.7; other zero-interface candidates retain zero. Sequence plausibility is more credible as a rescue when an independently computed fold is locally confident. The fixed 0.7 raw scale is not selected by outcomes.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "boltz_A_BC_max_ipSAE",
+      "op": "<=",
+      "value": 0
+    },
+    "then": {
+      "kind": "conditional",
+      "when": {
+        "signal": "boltz_plddt_binder_none",
+        "op": ">=",
+        "value": 0.7
+      },
+      "then": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "boltz_A_BC_max_ipSAE",
+            "weight": 9
+          },
+          {
+            "signal": "esm2_binder_LL_target",
+            "weight": 1
+          }
+        ]
+      },
+      "else": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "boltz_A_BC_max_ipSAE",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "boltz_A_BC_max_ipSAE",
+          "weight": 1
+        }
+      ]
+    }
+  }
+}
