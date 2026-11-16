@@ -1,0 +1,22 @@
+{
+  "name": "public-rocklin-energy-core-geometry",
+  "parent": "public-rocklin-energy-core",
+  "hypothesis": "Energy plus core burial improved PR-AUC in all three discovery topologies, though three folds give a coarse noise estimate. Add low worst-fragment deviation to penalize designs with locally incompatible backbone geometry even when core burial and energy look favorable. Use equal normalized weights for all three terms without adjusting ranges.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "score_per_res",
+        "weight": 1.0
+      },
+      {
+        "signal": "buried_np_AFILMVWY_per_res",
+        "weight": 1.0
+      },
+      {
+        "signal": "worstfrag",
+        "weight": 1.0
+      }
+    ]
+  }
+}
