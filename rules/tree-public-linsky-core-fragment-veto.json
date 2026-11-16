@@ -1,0 +1,51 @@
+{
+  "name": "tree-public-linsky-core-fragment-veto",
+  "parent": "public-linsky-energy-core",
+  "hypothesis": "Extend the energy/core mean with a joint failure veto: worst local fragment deviation above 2.0 and buried nonpolar surface per residue below 45.0 yields zero. Simultaneously weak core burial and poor backbone compatibility may identify designs that favorable total energy alone rescues incorrectly. Cutoffs are single rounded discovery-scale choices, not outcome-optimized values; preserve the reference ordering elsewhere.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "worstfrag",
+      "op": ">",
+      "value": 2.0
+    },
+    "then": {
+      "kind": "conditional",
+      "when": {
+        "signal": "buried_np_AFILMVWY_per_res",
+        "op": "<",
+        "value": 45.0
+      },
+      "then": {
+        "kind": "constant",
+        "value": 0
+      },
+      "else": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "score_per_res",
+            "weight": 1.0
+          },
+          {
+            "signal": "buried_np_AFILMVWY_per_res",
+            "weight": 1.0
+          }
+        ]
+      }
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "score_per_res",
+          "weight": 1.0
+        },
+        {
+          "signal": "buried_np_AFILMVWY_per_res",
+          "weight": 1.0
+        }
+      ]
+    }
+  }
+}
