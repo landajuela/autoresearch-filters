@@ -1,0 +1,18 @@
+{
+  "name": "public-megascale-proteingym-sequence-evolution",
+  "parent": "public-megascale-proteingym-baseline",
+  "hypothesis": "Average normalized ESM2 and GEMME scores for the stability-assay subset. General sequence plausibility and evolutionary constraints may complement each other for maintaining a stable fold; discovery correlation 0.646 is incomplete. This overlapping subset is its own fixed campaign, not independent replication of ProteinGym. Equal weights, no fitting.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "ESM2_650M",
+        "weight": 1.0
+      },
+      {
+        "signal": "GEMME",
+        "weight": 1.0
+      }
+    ]
+  }
+}
