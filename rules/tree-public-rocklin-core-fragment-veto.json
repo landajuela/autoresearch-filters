@@ -1,0 +1,51 @@
+{
+  "name": "tree-public-rocklin-core-fragment-veto",
+  "parent": "public-rocklin-energy-core",
+  "hypothesis": "Extend the energy/core mean with a joint failure veto: worst local fragment deviation above 1.5 and buried nonpolar surface per residue below 40.0 yields zero. Simultaneously weak core burial and poor backbone compatibility may identify designs that favorable total energy alone rescues incorrectly. Cutoffs are single rounded discovery-scale choices, not outcome-optimized values; preserve the reference ordering elsewhere.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "worstfrag",
+      "op": ">",
+      "value": 1.5
+    },
+    "then": {
+      "kind": "conditional",
+      "when": {
+        "signal": "buried_np_AFILMVWY_per_res",
+        "op": "<",
+        "value": 40.0
+      },
+      "then": {
+        "kind": "constant",
+        "value": 0
+      },
+      "else": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "score_per_res",
+            "weight": 1.0
+          },
+          {
+            "signal": "buried_np_AFILMVWY_per_res",
+            "weight": 1.0
+          }
+        ]
+      }
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "score_per_res",
+          "weight": 1.0
+        },
+        {
+          "signal": "buried_np_AFILMVWY_per_res",
+          "weight": 1.0
+        }
+      ]
+    }
+  }
+}
