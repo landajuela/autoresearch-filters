@@ -1,0 +1,35 @@
+{
+  "name": "tree-public-bits-to-binders-zero-interface-sequence",
+  "parent": "public-bits-to-binders-baseline",
+  "hypothesis": "More than half of discovery Boltz ipSAE values are exactly zero. Resolve that measurement-floor regime with sequence plausibility using a fixed 9:1 interface-to-ESM2 average (scores at most 0.1 on this branch), while retaining baseline ordering for positive interface scores. This tests a conservative sequence fallback instead of global mixing; weights are not fitted.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "boltz_A_BC_max_ipSAE",
+      "op": "<=",
+      "value": 0
+    },
+    "then": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "boltz_A_BC_max_ipSAE",
+          "weight": 9
+        },
+        {
+          "signal": "esm2_binder_LL_target",
+          "weight": 1
+        }
+      ]
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "boltz_A_BC_max_ipSAE",
+          "weight": 1
+        }
+      ]
+    }
+  }
+}
