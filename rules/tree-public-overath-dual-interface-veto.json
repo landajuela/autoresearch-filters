@@ -1,0 +1,43 @@
+{
+  "name": "tree-public-overath-dual-interface-veto",
+  "parent": "public-overath-baseline",
+  "hypothesis": "When AF3 and Boltz both have minimum interface ipSAE below 0.1, tie that jointly unsupported interface regime at zero; otherwise retain AF3. Both discovery distributions have a large near-zero regime; 0.1 is one rounded cutoff chosen from signal scale, not labels or a sweep. Agreement on absent interface support may be more useful than globally averaging predictions.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "af3_ipSAE_min",
+      "op": "<",
+      "value": 0.1
+    },
+    "then": {
+      "kind": "conditional",
+      "when": {
+        "signal": "boltz1_ipSAE_min",
+        "op": "<",
+        "value": 0.1
+      },
+      "then": {
+        "kind": "constant",
+        "value": 0
+      },
+      "else": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "af3_ipSAE_min",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "af3_ipSAE_min",
+          "weight": 1
+        }
+      ]
+    }
+  }
+}
