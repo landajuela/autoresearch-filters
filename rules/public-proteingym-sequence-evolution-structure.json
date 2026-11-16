@@ -1,0 +1,22 @@
+{
+  "name": "public-proteingym-sequence-evolution-structure",
+  "parent": "public-proteingym-sequence-evolution",
+  "hypothesis": "Sequence/evolution averaging improved PR-AUC on 161 of 185 discovery proteins. Add ESM-IF1 inverse-folding likelihood as a distinct structural-compatibility constraint, since plausible evolutionary sequences can still destabilize the specific fold. Equal normalized weights; the fixed ESM-IF1 range gives more variation than the two other scores, a known risk accepted without tuning. This tests whether the structural mechanism transfers across heterogeneous assay endpoints.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "ESM2_650M",
+        "weight": 1.0
+      },
+      {
+        "signal": "GEMME",
+        "weight": 1.0
+      },
+      {
+        "signal": "ESM-IF1",
+        "weight": 1.0
+      }
+    ]
+  }
+}
