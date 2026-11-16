@@ -1,0 +1,35 @@
+{
+  "name": "tree-public-overath-confident-interface-physics",
+  "parent": "public-overath-baseline",
+  "hypothesis": "Use a fixed 4:1 AF3-to-interface-energy average only for AF3 ipSAE at least 0.5; elsewhere retain AF3 alone. Energetic discrimination may be useful only after a credible interface is established. 0.5 is a coarse predeclared high-confidence regime, and the secondary weight is one fifth without tuning.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "af3_ipSAE_min",
+      "op": ">=",
+      "value": 0.5
+    },
+    "then": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "af3_ipSAE_min",
+          "weight": 4
+        },
+        {
+          "signal": "af3_rosetta_interface_dG_SASA_ratio",
+          "weight": 1
+        }
+      ]
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "af3_ipSAE_min",
+          "weight": 1
+        }
+      ]
+    }
+  }
+}
