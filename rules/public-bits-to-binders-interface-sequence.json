@@ -1,0 +1,18 @@
+{
+  "name": "public-bits-to-binders-interface-sequence",
+  "parent": "public-bits-to-binders-baseline",
+  "hypothesis": "Adding binder pLDDT failed the ROC and precision guards despite a positive pooled signal diagnostic. Test a distinct sequence-plausibility mechanism: average baseline interface confidence and ESM2 binder likelihood. Sequence plausibility may identify expressible binders that a geometric interface score misses. Their discovery correlation is -0.126. Keep physical directions and equal normalized weights; pooled AUC is not assumed to transfer across teams.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "boltz_A_BC_max_ipSAE",
+        "weight": 1.0
+      },
+      {
+        "signal": "esm2_binder_LL_target",
+        "weight": 1.0
+      }
+    ]
+  }
+}
