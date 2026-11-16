@@ -1,0 +1,64 @@
+{
+  "name": "tree-public-cao-bennett-confident-interface-recapitulation",
+  "parent": "public-cao-bennett-structure-consensus",
+  "hypothesis": "Only when both AF2 and RF2 interface PAE are below 10 angstrom, add AF2/design complex RMSD as a weak third term with weights 2:2:1; elsewhere retain interface consensus. Structural recapitulation may distinguish well-predicted interfaces, whereas RMSD on unresolved complexes is hard to interpret. One fixed 10 angstrom regime and predeclared weights, no threshold or weight search.",
+  "expression": {
+    "kind": "conditional",
+    "when": {
+      "signal": "pae_interaction",
+      "op": "<",
+      "value": 10
+    },
+    "then": {
+      "kind": "conditional",
+      "when": {
+        "signal": "rf2_pae_interaction",
+        "op": "<",
+        "value": 10
+      },
+      "then": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "pae_interaction",
+            "weight": 2
+          },
+          {
+            "signal": "rf2_pae_interaction",
+            "weight": 2
+          },
+          {
+            "signal": "af2_complex_rmsd",
+            "weight": 1
+          }
+        ]
+      },
+      "else": {
+        "kind": "additive",
+        "terms": [
+          {
+            "signal": "pae_interaction",
+            "weight": 1.0
+          },
+          {
+            "signal": "rf2_pae_interaction",
+            "weight": 1.0
+          }
+        ]
+      }
+    },
+    "else": {
+      "kind": "additive",
+      "terms": [
+        {
+          "signal": "pae_interaction",
+          "weight": 1.0
+        },
+        {
+          "signal": "rf2_pae_interaction",
+          "weight": 1.0
+        }
+      ]
+    }
+  }
+}
