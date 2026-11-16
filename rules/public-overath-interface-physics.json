@@ -1,0 +1,18 @@
+{
+  "name": "public-overath-interface-physics",
+  "parent": "public-overath-baseline",
+  "hypothesis": "The AF3/Boltz average broke ROC and PR guards, including a large loss on a one-positive target. Instead add normalized favorable interface energy density to the original AF3 baseline at equal weights. Confidence measures geometric certainty, whereas favorable energy per buried area can distinguish plausible but weak interfaces. Their discovery correlation is 0.369. This is a new physical mechanism, not retuning the failed consensus.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "af3_ipSAE_min",
+        "weight": 1.0
+      },
+      {
+        "signal": "af3_rosetta_interface_dG_SASA_ratio",
+        "weight": 1.0
+      }
+    ]
+  }
+}
