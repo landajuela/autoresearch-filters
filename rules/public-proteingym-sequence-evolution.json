@@ -1,0 +1,18 @@
+{
+  "name": "public-proteingym-sequence-evolution",
+  "parent": "public-proteingym-baseline",
+  "hypothesis": "Average normalized ESM2 and GEMME scores. The sequence language model captures general sequence plausibility while GEMME captures family-specific evolutionary constraints; discovery correlation 0.572 suggests complementarity. Equal weights and the already frozen ranges are used, with no calibration or assay-specific rule.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "ESM2_650M",
+        "weight": 1.0
+      },
+      {
+        "signal": "GEMME",
+        "weight": 1.0
+      }
+    ]
+  }
+}
