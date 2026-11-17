@@ -1,0 +1,16 @@
+{
+  "name": "synthetic-tree-example",
+  "parent": "synthetic-baseline",
+  "hypothesis": "Illustrative syntax only: assign zero to candidates with both low confidence and low stabilizer; otherwise rank by confidence. These thresholds are examples, not discovered or validated results.",
+  "expression": {
+    "kind": "conditional",
+    "when": {"signal": "confidence", "op": "<", "value": 0.4},
+    "then": {
+      "kind": "conditional",
+      "when": {"signal": "stabilizer", "op": "<", "value": 0.8},
+      "then": {"kind": "constant", "value": 0},
+      "else": {"kind": "additive", "terms": [{"signal": "confidence"}]}
+    },
+    "else": {"kind": "additive", "terms": [{"signal": "confidence"}]}
+  }
+}

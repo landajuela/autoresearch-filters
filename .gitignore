@@ -7,6 +7,13 @@ dist/
 build/
 .DS_Store
 work/
+# Downloaded data and local research artifacts (metadata/manifests are tracked).
+/data/raw/
+/data/prepared/
+/data/cache/
+/data/notes/
+# Keep caches from older checkouts ignored too.
 data/downloads/
+/data/dataset-candidates.md
 campaigns/
 

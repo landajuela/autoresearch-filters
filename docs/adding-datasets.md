@@ -59,12 +59,12 @@ every idea is counted.
 Only the signals you list are kept; every other column, including measured
 outcomes, is dropped at `prepare` and cannot appear in a rule. Check the source's
 license first, and record URL/revision, retrieval date and checksums in
-`data/README.md`; prefer a pinned download over vendoring.
+`data/PROVENANCE.md`; prefer a pinned download over vendoring.
 
 ```json
 {
   "name": "screen",
-  "source": "../data/my_screen.csv",
+  "source": "../data/prepared/my-screen/candidates.csv",
   "id_column": "candidate_id",
   "label_column": "validated",
   "success_value": true,

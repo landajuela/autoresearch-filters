@@ -1,4 +1,4 @@
-"""Regenerate data/example_screen.csv: a synthetic table in the shape users arrive with.
+"""Regenerate data/examples/example_screen.csv: a synthetic screening table.
 
 Computed columns plus one experimental outcome, no ID and no group column. The latent
 quality is deliberately visible in some columns and absent from others, so a search has
@@ -37,7 +37,8 @@ def main() -> Path:
     chance = 1 / (1 + np.exp(-(2.1 * quality - 1.05)))
     frame["measured_binding"] = (rng.random(ROWS) < chance).astype(int)
 
-    path = Path(__file__).resolve().parents[1] / "data/example_screen.csv"
+    path = Path(__file__).resolve().parents[1] / "data/examples/example_screen.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(path, index=False)
     print(f"Wrote {path}: {len(frame)} rows, {frame.measured_binding.sum()} successes")
     return path

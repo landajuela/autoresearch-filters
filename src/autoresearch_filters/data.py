@@ -52,9 +52,9 @@ def read_table(path: Path) -> pd.DataFrame:
 
 
 def load_source(config: Config, base: Path) -> pd.DataFrame:
-    """`base` is the config file's directory; downloads are cached in ../data/downloads."""
+    """`base` is the config directory; built-in sources live in ../data/raw/<source>."""
     if config.source in LOADERS:
-        return LOADERS[config.source]((base / "../data/downloads").resolve())
+        return LOADERS[config.source]((base / "../data/raw" / config.source).resolve())
     return read_table(base / config.source)
 
 

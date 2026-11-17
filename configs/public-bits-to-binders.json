@@ -1,0 +1,88 @@
+{
+  "name": "public-bits-to-binders",
+  "source": "../data/prepared/public-bits-to-binders/candidates.csv",
+  "id_column": "candidate_id",
+  "label_column": "success",
+  "success_value": 1,
+  "group_column": "group",
+  "signals": {
+    "boltz_A_BC_max_ipSAE": {
+      "direction": "higher_is_better",
+      "range": [
+        0.0,
+        0.85
+      ],
+      "missing": "error",
+      "description": "Maximum Boltz interface confidence against the target subchains."
+    },
+    "chai1_A_BC_max_ipSAE": {
+      "direction": "higher_is_better",
+      "range": [
+        0.0,
+        0.52
+      ],
+      "missing": "error",
+      "description": "Maximum Chai interface confidence against the target subchains."
+    },
+    "boltz_rosetta_A_BC_iptm": {
+      "direction": "higher_is_better",
+      "range": [
+        0.07,
+        0.94
+      ],
+      "missing": "error",
+      "description": "Boltz binder-target interface predicted TM-score."
+    },
+    "boltz_plddt_binder_none": {
+      "direction": "higher_is_better",
+      "range": [
+        0.28,
+        0.94
+      ],
+      "missing": "error",
+      "description": "Boltz predicted binder local confidence."
+    },
+    "boltz_rosetta_A_BC_dG_separated/dSASAx100": {
+      "direction": "lower_is_better",
+      "range": [
+        -630,
+        200
+      ],
+      "missing": "error",
+      "description": "Rosetta binder-target binding energy per buried surface area."
+    },
+    "boltz_sap_score": {
+      "direction": "lower_is_better",
+      "range": [
+        0,
+        310
+      ],
+      "missing": "error",
+      "description": "Predicted spatial aggregation propensity."
+    },
+    "esm2_binder_LL_target": {
+      "direction": "higher_is_better",
+      "range": [
+        -3.4,
+        0.0
+      ],
+      "missing": "error",
+      "description": "ESM2 binder log likelihood in target context."
+    }
+  },
+  "split": {
+    "holdout_groups": [
+      "Zist Rayanesh"
+    ],
+    "cv": "logo"
+  },
+  "protocol": {
+    "top_k": [
+      5,
+      10,
+      20
+    ],
+    "primary_metric": "pr_auc",
+    "guard_tolerance": 0.01
+  }
+}

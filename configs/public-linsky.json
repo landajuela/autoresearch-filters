@@ -1,0 +1,89 @@
+{
+  "name": "public-linsky",
+  "source": "../data/prepared/public-linsky/candidates.csv",
+  "id_column": "candidate_id",
+  "label_column": "success",
+  "success_value": 1,
+  "group_column": "group",
+  "signals": {
+    "score_per_res": {
+      "direction": "lower_is_better",
+      "range": [
+        -3.4,
+        -0.3
+      ],
+      "missing": "error",
+      "description": "Rosetta total energy per residue; lower energy is preferred."
+    },
+    "pack": {
+      "direction": "higher_is_better",
+      "range": [
+        0.54,
+        0.8
+      ],
+      "missing": "error",
+      "description": "Rosetta packing quality; tighter packing is preferred."
+    },
+    "worstfrag": {
+      "direction": "lower_is_better",
+      "range": [
+        0.1,
+        4.8
+      ],
+      "missing": "error",
+      "description": "Worst local fragment deviation; smaller deviation is preferred."
+    },
+    "exposed_hydrophobics": {
+      "direction": "lower_is_better",
+      "range": [
+        10,
+        770
+      ],
+      "missing": "error",
+      "description": "Exposed hydrophobic surface; less exposure is preferred."
+    },
+    "buried_np_AFILMVWY_per_res": {
+      "direction": "higher_is_better",
+      "range": [
+        30,
+        72
+      ],
+      "missing": "error",
+      "description": "Buried nonpolar surface per residue; more burial is preferred."
+    },
+    "fa_rep_per_res": {
+      "direction": "lower_is_better",
+      "range": [
+        0.43,
+        1.02
+      ],
+      "missing": "error",
+      "description": "Repulsive energy per residue; fewer clashes are preferred."
+    },
+    "hbond_sc": {
+      "direction": "lower_is_better",
+      "range": [
+        -30,
+        0
+      ],
+      "missing": "error",
+      "description": "Side-chain hydrogen-bond energy; more favorable energy is preferred."
+    }
+  },
+  "split": {
+    "holdout_groups": [
+      "thioredoxin"
+    ],
+    "cv": "logo"
+  },
+  "protocol": {
+    "top_k": [
+      5,
+      10,
+      20,
+      50
+    ],
+    "primary_metric": "pr_auc",
+    "guard_tolerance": 0.01
+  }
+}

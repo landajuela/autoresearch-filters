@@ -1,0 +1,71 @@
+{
+  "name": "public-megascale-proteingym",
+  "source": "../data/prepared/public-megascale-proteingym/candidates.csv",
+  "id_column": "candidate_id",
+  "label_column": "success",
+  "success_value": 1,
+  "group_column": "group",
+  "signals": {
+    "ESM2_650M": {
+      "direction": "higher_is_better",
+      "range": [
+        -30,
+        12
+      ],
+      "missing": "error",
+      "description": "Published ESM2-650M zero-shot variant-effect score."
+    },
+    "ESM1v_ensemble": {
+      "direction": "higher_is_better",
+      "range": [
+        -28,
+        10
+      ],
+      "missing": "error",
+      "description": "Published ESM1v ensemble zero-shot variant-effect score."
+    },
+    "ProteinMPNN": {
+      "direction": "higher_is_better",
+      "range": [
+        -2.7,
+        -1.1
+      ],
+      "missing": "error",
+      "description": "Published ProteinMPNN inverse-folding log likelihood."
+    },
+    "ESM-IF1": {
+      "direction": "higher_is_better",
+      "range": [
+        -2.8,
+        -0.7
+      ],
+      "missing": "error",
+      "description": "Published ESM-IF1 inverse-folding log likelihood."
+    },
+    "GEMME": {
+      "direction": "higher_is_better",
+      "range": [
+        -24,
+        4
+      ],
+      "missing": "error",
+      "description": "Published GEMME evolutionary variant-effect score."
+    }
+  },
+  "split": {
+    "holdout_groups": [
+      "YNZC_BACSU"
+    ],
+    "cv": "logo"
+  },
+  "protocol": {
+    "top_k": [
+      5,
+      10,
+      20,
+      50
+    ],
+    "primary_metric": "pr_auc",
+    "guard_tolerance": 0.01
+  }
+}

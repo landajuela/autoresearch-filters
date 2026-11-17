@@ -1,0 +1,124 @@
+{
+  "files": [
+    {
+      "dataset": "overath",
+      "path": "overath/prepared_training_dataset.csv",
+      "url": "https://raw.githubusercontent.com/DigBioLab/de_novo_binder_scoring/3d4fc2710ae23e578190503164777240f99ce976/analysis/data/prepared_training_dataset.csv",
+      "bytes": 85466098,
+      "sha256": "21b42bac60283f86eaa05a616f95e8bd6eb1125296773fd0be4f89d26ef2fd71",
+      "retrieved": "2026-11-16"
+    },
+    {
+      "dataset": "bits-to-binders",
+      "path": "bits-to-binders/12k_all_metrics.csv",
+      "url": "https://raw.githubusercontent.com/kosonocky/bits-to-binders/43eeeaf7e6ab629e796c9fe8d20b0ef70a3610d9/data/12k_all_metrics.csv",
+      "bytes": 43613037,
+      "sha256": "10aae3ddeb1d2dee3dfbc34ce833fed3f2dbe3f58b47afd444e57dc2b22ad78e",
+      "retrieved": "2026-11-16"
+    },
+    {
+      "dataset": "bits-to-binders",
+      "path": "bits-to-binders/12k_all_results.csv",
+      "url": "https://raw.githubusercontent.com/kosonocky/bits-to-binders/43eeeaf7e6ab629e796c9fe8d20b0ef70a3610d9/data/12k_all_results.csv",
+      "bytes": 5626972,
+      "sha256": "de271331891d3c0a1830ca387ea4c17b8e252c745a8d961474297e64b9d598e6",
+      "retrieved": "2026-11-16"
+    },
+    {
+      "dataset": "linsky",
+      "path": "linsky/sc16_combined_all.csv",
+      "url": "https://raw.githubusercontent.com/strauchlab/scaffold_design/f10c9eac924af91f4dff0d7e50b2641257341e3a/predictions/classifier/sc16_combined_all.csv",
+      "bytes": 43447889,
+      "sha256": "97b25d94231c2bef57ce33a6ae40f1b7330264776194eaa8d900a2bf88452ee4",
+      "retrieved": "2026-11-16"
+    },
+    {
+      "dataset": "rocklin",
+      "path": "rocklin/rocklin_combined_scores_21.csv",
+      "url": "https://raw.githubusercontent.com/strauchlab/scaffold_design/f10c9eac924af91f4dff0d7e50b2641257341e3a/predictions/classifier/rocklin_combined_scores_21.csv",
+      "bytes": 24505468,
+      "sha256": "6f50d66fa249ca72fb70e5e8d041db535e8ad27d35da51df8ec16c9b5f1cca80",
+      "retrieved": "2026-11-16"
+    },
+    {
+      "dataset": "cao-bennett",
+      "path": "cao-bennett/scripts_and_main_pdbs.tar.gz",
+      "url": "https://files.ipd.uw.edu/pub/improving_dl_binders_2023/supplemental_files/scripts_and_main_pdbs.tar.gz",
+      "bytes": 142428699,
+      "sha256": "b7c074ad0691708797840b2009c99712db86fd0c5e308c5ccc2431c559fd63bc",
+      "retrieved": "2026-11-16"
+    },
+    {
+      "dataset": "proteingym",
+      "path": "proteingym/DMS_ProteinGym_substitutions.zip",
+      "url": "https://marks.hms.harvard.edu/proteingym/ProteinGym_v1.3/DMS_ProteinGym_substitutions.zip",
+      "bytes": 43021128,
+      "sha256": "3a83766254ac9ac9984ec25cb73c6e010ea4418f5e35f143933e6b6e6473b921",
+      "retrieved": "2026-11-16",
+      "published_checksum": "md5:ca1a4d46941ef33cc972245347118c7d"
+    },
+    {
+      "dataset": "proteingym",
+      "path": "proteingym/zero_shot_substitutions_scores.zip",
+      "url": "https://marks.hms.harvard.edu/proteingym/ProteinGym_v1.3/zero_shot_substitutions_scores.zip",
+      "bytes": 1911045703,
+      "sha256": "3fd7cdb5e78f1d43cabfabfeb6578c252b63af23ba2ab44db0094dc3a42de36d",
+      "retrieved": "2026-11-16",
+      "published_checksum": "md5:7912b6a1f6c80b0b78c12a15c84d96fc"
+    },
+    {
+      "dataset": "megascale",
+      "path": "megascale/Processed_K50_dG_datasets.zip",
+      "url": "https://zenodo.org/records/7992926/files/Processed_K50_dG_datasets.zip?download=1",
+      "bytes": 1013678473,
+      "sha256": "e1c52e14d27b18b846cd87c719eb3f3adae6f736e700962bb7da82fd031488e9",
+      "retrieved": "2026-11-16",
+      "published_checksum": "md5:f7e8c553efee734cf161ee6f2b0a09cf"
+    },
+    {
+      "dataset": "proteingym",
+      "path": "proteingym/config.json",
+      "url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/config.json",
+      "bytes": 44104,
+      "sha256": "7cd239d1e4c8b474f6ce2bd6574423b53ab48204f852f219e09a36f25d513608",
+      "retrieved": "2026-11-16"
+    },
+    {
+      "dataset": "proteingym",
+      "path": "proteingym/DMS_substitutions.csv",
+      "url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/reference_files/DMS_substitutions.csv",
+      "bytes": 208734,
+      "sha256": "a8f498011532a74aa9fe556a50555a75e928c5837d19c06a87592ae04049b308",
+      "retrieved": "2026-11-16",
+      "published_checksum": "md5:c434631737013fceb56efc98056151e0"
+    },
+    {
+      "dataset": "overath",
+      "path": "overath/LICENSE",
+      "url": "https://raw.githubusercontent.com/DigBioLab/de_novo_binder_scoring/3d4fc2710ae23e578190503164777240f99ce976/LICENSE",
+      "bytes": 1082,
+      "sha256": "ba5cfce02772d283669b9a21c53ca4bc55b6921f04fa4648b7098f916f871507",
+      "retrieved": "2026-11-16"
+    },
+    {
+      "dataset": "bits-to-binders",
+      "path": "bits-to-binders/LICENSE",
+      "url": "https://raw.githubusercontent.com/kosonocky/bits-to-binders/43eeeaf7e6ab629e796c9fe8d20b0ef70a3610d9/LICENSE",
+      "bytes": 1071,
+      "sha256": "7e876d9b7f4be279f240e8bdb7ee9b149cfe26edf20575308198c4649f0521c3",
+      "retrieved": "2026-11-16"
+    },
+    {
+      "dataset": "proteingym",
+      "path": "proteingym/LICENSE",
+      "url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/LICENSE",
+      "bytes": 1134,
+      "sha256": "9b0d23df61da60c379c15bef09ba5f5b14ab16bae6df025509dde9e50299393c",
+      "retrieved": "2026-11-16"
+    }
+  ],
+  "schema_version": 1,
+  "license_provenance": "See data/PROVENANCE.md; the repository license does not relicense downloaded data.",
+  "prepared_data_directory": "data/prepared",
+  "raw_data_directory": "data/raw"
+}

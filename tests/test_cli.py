@@ -130,3 +130,52 @@ def test_drafted_rule_defaults_to_every_signal_and_the_campaign_baseline(
         "predicted_affinity",
         "docking_energy",
     ]
+
+
+def test_tree_rule_survives_cli_evaluation_freeze_final_and_html(
+    tmp_path, monkeypatch, config_dict, write_rule
+):
+    from autoresearch_filters.config import digest
+    from autoresearch_filters.rules import Rule, load_rule
+
+    root = Path(__file__).resolve().parents[1]
+    raw = json.loads((root / "rules/tree.json").read_text())
+    raw["parent"] = "weak"
+    tree = tmp_path / "tree.json"
+    tree.write_text(json.dumps(raw))
+    weak = write_rule("weak", [{"signal": "stabilizer"}])
+    config = tmp_path / "dataset.json"
+    config.write_text(json.dumps(config_dict))
+    monkeypatch.chdir(tmp_path)
+    prepared = runner.invoke(
+        app, ["prepare", "--config", str(config), "--baseline", str(weak), "-c", "tree-run"]
+    )
+    assert prepared.exit_code == 0, prepared.output
+    for args in [
+        ["eval", str(tree)],
+        ["verify", str(tree)],
+        ["final"],
+        ["log", "--html"],
+    ]:
+        result = runner.invoke(app, [*args, "-c", "tree-run"])
+        assert result.exit_code == 0, result.output
+    campaign = tmp_path / "campaigns/tree-run"
+    rows = [json.loads(line) for line in (campaign / "journal.jsonl").read_text().splitlines()]
+    assert [r["kind"] for r in rows] == ["prepare", "eval", "eval", "verify", "final"]
+    assert rows[-2]["accepted"]
+    frozen = load_rule(campaign / "data/frozen.json")
+    assert frozen == load_rule(tree)
+    for row in rows[2:]:
+        assert row["rule_hash"] == digest(frozen)
+        assert Rule.model_validate(row["rule_json"]) == frozen
+        assert 'if ["confidence" < 0.4]' in row["formula"]
+    html = (campaign / "journal.html").read_text()
+    assert "synthetic-tree-example" in html and "else" in html and "constant" in html
+    assert "else_branch" not in html
+    for args, message in [
+        (["eval", str(tree)], "frozen"),
+        (["verify", str(tree)], "frozen"),
+        (["final"], "already been used"),
+    ]:
+        result = runner.invoke(app, [*args, "-c", "tree-run"])
+        assert result.exit_code != 0 and message in result.output

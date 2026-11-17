@@ -43,7 +43,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then run
 three commands on the example table shipped here (240 synthetic rows):
 
 ```sh
-uv run filters init --data data/example_screen.csv        # 1. read the table
+uv run filters init --data data/examples/example_screen.csv  # 1. read the table
 uv run filters prepare --config example_screen -c run1    # 2. split it, score the baseline
 uv run filters eval drop-polar-contacts -c run1           # 3. try an idea
 ```
@@ -51,7 +51,7 @@ uv run filters eval drop-polar-contacts -c run1           # 3. try an idea
 Step 1 writes two files and tells you what it decided:
 
 ```
-data/example_screen.csv: 240 rows, 6 signals kept
+data/examples/example_screen.csv: 240 rows, 6 signals kept
 outcome 'measured_binding': success is 1, 84 of 240 usable rows
   docking_energy: lower_is_better [guessed from the name: CHECK IT], range [-54, -19]
   predicted_affinity: higher_is_better [default: CHECK IT], range [3.9, 8.4]
@@ -272,17 +272,64 @@ tried, a tree of which idea came from which, and the details of each one.
 ```
 
 `parent` is the rule this idea was built from; `hypothesis` is why it should
-work, written before you score it. Every signal is first rescaled to 0-1 so that
-higher always means better, using the range declared in the config.
+work, written before you score it. Signals used in scoring formulas are rescaled
+to 0-1 so that higher always means better, using the range declared in the config.
+Threshold conditions use raw signal values, before rescaling or orientation.
 
 | Kind | What it computes |
 | --- | --- |
 | `additive` | A weighted average of signals |
 | `product` | Signals multiplied together, so all must be good |
 | `gated` | A base formula plus a correction that applies only when a signal is above or below a threshold. See [rules/gated.json](rules/gated.json) |
+| `conditional` | Choose exactly one of `then` and `else` using a raw-value threshold. Either branch can contain another conditional or a scoring formula. See [rules/tree.json](rules/tree.json) |
+| `constant` | Return a specified finite score, useful for tree leaves |
 
 A rule can only use signals listed in the dataset config. It cannot see the
 labels, and it cannot run code.
+
+### Nested conditional rules
+
+Write a tree by hand, then evaluate it with the usual `filters eval` command.
+This expression, from [rules/tree.json](rules/tree.json), illustrates two nested
+decisions using signals in `configs/synthetic.json`:
+
+```json
+{
+  "kind": "conditional",
+  "when": {"signal": "confidence", "op": "<", "value": 0.4},
+  "then": {
+    "kind": "conditional",
+    "when": {"signal": "stabilizer", "op": "<", "value": 0.8},
+    "then": {"kind": "constant", "value": 0},
+    "else": {"kind": "additive", "terms": [{"signal": "confidence"}]}
+  },
+  "else": {"kind": "additive", "terms": [{"signal": "confidence"}]}
+}
+```
+
+This assigns zero when both raw confidence is below 0.4 and raw stabilizer is
+below 0.8; otherwise it returns normalized confidence. The thresholds illustrate
+syntax and have no claimed experimental benefit.
+
+- `when` requires a signal, one of `<`, `<=`, `>`, `>=`, and a finite threshold.
+  Equality follows the chosen operator. For example, confidence exactly 0.4
+  takes the outer `else` branch above.
+- Both `then` and `else` are required. Either can be `conditional`, `additive`,
+  `product`, `gated`, or `constant`. Each row receives only its selected branch's
+  score. Independent gates within a `gated` leaf still add their corrections.
+- Constants are finite ranking scores, not fitted probabilities; they are not
+  normalized or clipped. Formula leaves retain their existing normalization.
+- Every condition and leaf must reference only the config's allowed signals,
+  including branches that no current row reaches. Nested decisions can express
+  AND/OR logic; there are no separate compound-condition operators.
+- Trees allow at most 16 conditional levels along a path and 255 decision/leaf
+  nodes in total. A `gated` leaf retains its existing gate and term limits.
+
+The CLI and HTML journal display the nested formula and preserve the complete
+JSON rule. `filters idea` still drafts additive/product rules; conditional rules
+are authored by hand. Tree structure, thresholds, and leaf values are fixed in
+the JSON: the evaluator does no fitting or threshold search. Existing campaign
+freeze and one-use verification/holdout rules apply to trees as well.
 
 ## Citation
 
@@ -312,8 +359,10 @@ at the code.
 - [AGENTS.md](AGENTS.md): the rules an agent follows, and why.
 - [docs/adding-datasets.md](docs/adding-datasets.md): every config field, and
   what to fix by hand when a guess is wrong.
-- [data/README.md](data/README.md): where the example data comes from, and its
-  license.
+- [Data catalog and directory guide](data/README.md): example tables, raw
+  downloads, prepared datasets, configs, and campaign journals.
+- [Data provenance and licensing](data/PROVENANCE.md): sources, labels,
+  import decisions, and interpretation limits.
 - The one-use limits are enforced by marker files. They prevent accidents; they
   do not stop someone who deletes files on purpose.
 

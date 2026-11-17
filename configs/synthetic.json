@@ -1,6 +1,6 @@
 {
   "name": "synthetic",
-  "source": "../data/synthetic.csv",
+  "source": "../data/examples/synthetic.csv",
   "id_column": "id",
   "label_column": "success",
   "success_value": 1,

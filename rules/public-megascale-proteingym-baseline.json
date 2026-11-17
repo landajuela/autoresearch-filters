@@ -1,0 +1,13 @@
+{
+  "name": "public-megascale-proteingym-baseline",
+  "hypothesis": "Rank candidates by ESM2_650M alone, in its declared direction. Nothing is fitted; this is only the number every idea must beat.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "ESM2_650M",
+        "weight": 1
+      }
+    ]
+  }
+}

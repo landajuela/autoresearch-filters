@@ -1,0 +1,13 @@
+{
+  "name": "public-overath-baseline",
+  "hypothesis": "Rank candidates by af3_ipSAE_min alone, in its declared direction. Nothing is fitted; this is only the number every idea must beat.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "af3_ipSAE_min",
+        "weight": 1
+      }
+    ]
+  }
+}

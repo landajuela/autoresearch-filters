@@ -1,0 +1,97 @@
+{
+  "name": "public-overath",
+  "source": "../data/prepared/public-overath/candidates.csv",
+  "id_column": "candidate_id",
+  "label_column": "success",
+  "success_value": 1,
+  "group_column": "group",
+  "signals": {
+    "af3_ipSAE_min": {
+      "direction": "higher_is_better",
+      "range": [
+        0.0,
+        0.86
+      ],
+      "missing": "error",
+      "description": "AF3 minimum directional interface confidence."
+    },
+    "af3_iptm_avg": {
+      "direction": "higher_is_better",
+      "range": [
+        0.08,
+        0.95
+      ],
+      "missing": "error",
+      "description": "AF3 mean interface predicted TM-score."
+    },
+    "af2_pae_interaction": {
+      "direction": "lower_is_better",
+      "range": [
+        3,
+        29
+      ],
+      "missing": "error",
+      "description": "AF2 predicted interface alignment error."
+    },
+    "colab_ipSAE_min": {
+      "direction": "higher_is_better",
+      "range": [
+        0.0,
+        0.85
+      ],
+      "missing": "drop",
+      "description": "ColabFold minimum directional interface confidence."
+    },
+    "boltz1_ipSAE_min": {
+      "direction": "higher_is_better",
+      "range": [
+        0.0,
+        0.93
+      ],
+      "missing": "drop",
+      "description": "Boltz-1 minimum directional interface confidence."
+    },
+    "af3_rosetta_interface_sc": {
+      "direction": "higher_is_better",
+      "range": [
+        0.35,
+        0.84
+      ],
+      "missing": "error",
+      "description": "Shape complementarity of the predicted interface."
+    },
+    "af3_rosetta_interface_dG_SASA_ratio": {
+      "direction": "lower_is_better",
+      "range": [
+        -4.3,
+        -1.0
+      ],
+      "missing": "error",
+      "description": "Rosetta interface energy per buried surface area."
+    },
+    "af3_sap_binder": {
+      "direction": "lower_is_better",
+      "range": [
+        0,
+        200
+      ],
+      "missing": "error",
+      "description": "Predicted binder spatial aggregation propensity."
+    }
+  },
+  "split": {
+    "holdout_groups": [
+      "sntx"
+    ],
+    "cv": "logo"
+  },
+  "protocol": {
+    "top_k": [
+      5,
+      10,
+      20
+    ],
+    "primary_metric": "pr_auc",
+    "guard_tolerance": 0.01
+  }
+}

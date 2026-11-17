@@ -1,0 +1,13 @@
+{
+  "name": "public-cao-bennett-baseline",
+  "hypothesis": "Rank candidates by pae_interaction alone, in its declared direction. Nothing is fitted; this is only the number every idea must beat.",
+  "expression": {
+    "kind": "additive",
+    "terms": [
+      {
+        "signal": "pae_interaction",
+        "weight": 1
+      }
+    ]
+  }
+}

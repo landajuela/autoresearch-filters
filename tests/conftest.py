@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 @pytest.fixture
 def config_dict():
     value = json.loads((ROOT / "configs/synthetic.json").read_text())
-    value["source"] = str(ROOT / "data/synthetic.csv")
+    value["source"] = str(ROOT / "data/examples/synthetic.csv")
     return value
 
 
