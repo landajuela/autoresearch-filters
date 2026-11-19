@@ -62,8 +62,14 @@ uv run filters final -c NAME                              # scores the frozen ru
    means ROC-AUC, PR-AUC or a precision@K fell more than the tolerance below the
    baseline, and such a rule cannot be selected. `noise` is a rough yardstick
    from a handful of folds, not a significance test; look at the per-fold values.
-5. **Stop when gains do not transfer.** After `verify`, the campaign is frozen
-   whatever the outcome. More research needs genuinely fresh reserved data.
+5. **Freeze each run and keep its history.** After `verify`, the campaign is
+   frozen whatever the outcome. To compare another set of ideas on the same
+   benchmark, start a new named campaign with the same source data, config
+   and baseline. Use `filters note` to identify the earlier run and record
+   which results were already known. Select finalists on discovery, validate
+   once, and report the frozen rule's holdout score for every run. Describe
+   these as repeated evaluations on the same split. An independent test of
+   generalization requires fresh reserved data.
 6. **Infrastructure stays fixed during a campaign.** Change only `rules/*.json`
    and the journal (through the commands). Do not touch `src/`, configs, splits,
    metrics or tolerances to rescue a result. A real bug needs a separate,
